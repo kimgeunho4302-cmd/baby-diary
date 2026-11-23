@@ -78,7 +78,7 @@
   /* ---------------- 상태 ---------------- */
   function defaults() {
     return {
-      family: { mom: '', dad: '', baby: '', birth: '', cal: 'solar', leap: false, momBirth: '', dadBirth: '' },
+      family: { mom: '', dad: '', baby: '', birth: '', due: '', cal: 'solar', leap: false, momBirth: '', dadBirth: '' },
       first: {
         parents: { photo: '', memo: '', date: '' },
         baby: { photo: '', memo: '', date: '' }
@@ -226,6 +226,48 @@
     return s.y + '-' + pad(s.m) + '-' + pad(s.d);
   }
 
+  function dueISO() {
+    var d = String(state.family.due || '');
+    return /^\d{4}-\d{2}-\d{2}$/.test(d) ? d : '';
+  }
+
+  /* 마지막 생리일을 예정일에서 280일 역산해 임신 주수를 구한다 */
+  function pregnancyOf(baseISO, refISO) {
+    if (!baseISO) return null;
+    var lmp = addDays(baseISO, -280);
+    var n = dayDiff(lmp, refISO);
+    if (n < 0 || n > 320) return null;
+    var w = Math.floor(n / 7), dd = n % 7;
+    return { weeks: w, days: dd, lmp: lmp, text: w + '주 ' + dd + '일' };
+  }
+
+  /* 아기 상태: born(태어남) / expecting(만나기 전) / empty(정보 없음) */
+  function familyStatus() {
+    var birth = babySolarISO();
+    var due = dueISO();
+    var today = todayISO();
+    if (birth && toUTC(birth) <= toUTC(today)) {
+      return { mode: 'born', birth: birth, due: due, target: birth };
+    }
+    var target = birth && toUTC(birth) > toUTC(today) ? birth : due;
+    if (target) {
+      return {
+        mode: 'expecting',
+        birth: birth || '',
+        due: due || '',
+        target: target,
+        weekBase: due || birth || target
+      };
+    }
+    return { mode: 'empty', birth: birth || '', due: due, target: '' };
+  }
+
+  function countdownText(diff, isToday) {
+    if (diff > 0) return (isToday ? '만남까지 ' : '예정일까지 ') + 'D-' + diff;
+    if (diff === 0) return '만남까지 D-DAY';
+    return '예정일 +' + Math.abs(diff) + '일';
+  }
+
   function setBirthHint() {
     var hint = $('#birthHint');
     if (!hint) return;
@@ -287,24 +329,55 @@
   function updateBrand() {
     var f = state.family;
     var sub = $('#brandSub');
+    if (!sub) return;
     var name = f.baby ? f.baby : '';
-    var sol = babySolarISO();
-    if (name && sol) {
-      var diff = dayDiff(sol, todayISO());
-      sub.textContent = name + ' · 태어난 지 +' + Math.max(0, diff) + '일';
-    } else if (name) {
-      sub.textContent = name;
-    } else {
-      sub.textContent = '아이 정보를 등록해 주세요';
+    var pre = name ? name + ' · ' : '';
+    var st = familyStatus();
+    if (st.mode === 'born') {
+      var diff = dayDiff(st.birth, todayISO());
+      var age = ageText(st.birth, todayISO());
+      sub.textContent = pre + '태어난 지 +' + Math.max(0, diff) + '일' + (age ? ' · ' + age : '');
+      return;
     }
+    if (st.mode === 'expecting') {
+      var d = dayDiff(todayISO(), st.target);
+      var preg = pregnancyOf(st.weekBase, todayISO());
+      sub.textContent = pre + countdownText(d, true) + (preg ? ' · 임신 ' + preg.text : '');
+      return;
+    }
+    sub.textContent = name || '아이 정보를 등록해 주세요';
+  }
+
+  function setDueHint() {
+    var el = $('#dueHint');
+    if (!el) return;
+    var due = dueISO();
+    el.classList.remove('warn');
+    if (!due) {
+      el.textContent = '예정일만 있어도 저장되고, 만남까지 남은 날과 임신 주수를 함께 보여드려요.';
+      return;
+    }
+    var st = familyStatus();
+    var txt = '출산 예정일 ' + fmtKoreanDate(due);
+    if (st.mode === 'expecting') {
+      var preg = pregnancyOf(st.weekBase, todayISO());
+      txt += ' · ' + countdownText(dayDiff(todayISO(), st.target), true);
+      if (preg) txt += ' (' + preg.text + ') 생일을 넣으면 실제 생일 기준으로 바뀝니다.';
+    } else if (st.mode === 'born') {
+      var gap = dayDiff(st.birth, due);
+      txt += ' · ' + (gap > 0 ? '예정일보다 ' + gap + '일 늦게' : (gap < 0 ? '예정일보다 ' + Math.abs(gap) + '일 일찍' : '예정일에')) + ' 만났어요.';
+    }
+    el.textContent = txt;
   }
 
   function bindFamily() {
     var f = state.family;
     var mom = $('#momName'), dad = $('#dadName'), baby = $('#babyName');
     var babyBirth = $('#babyBirth'), momBirth = $('#momBirth'), dadBirth = $('#dadBirth');
+    var babyDue = $('#babyDue');
     mom.value = f.mom; dad.value = f.dad; baby.value = f.baby;
     babyBirth.value = f.birth; momBirth.value = f.momBirth; dadBirth.value = f.dadBirth;
+    if (babyDue) babyDue.value = f.due || '';
 
     [mom, dad, baby].forEach(function (el) {
       el.addEventListener('input', function () {
@@ -316,7 +389,11 @@
 
     babyBirth.addEventListener('change', function () {
       f.birth = babyBirth.value;
-      syncLeapUI(); setBirthHint(); updateBrand(); setOnboard(); renderDay(); save(true);
+      syncLeapUI(); setBirthHint(); setDueHint(); updateBrand(); setOnboard(); renderDay(); save(true);
+    });
+    if (babyDue) babyDue.addEventListener('change', function () {
+      f.due = babyDue.value;
+      setDueHint(); setBirthHint(); updateBrand(); setOnboard(); renderDay(); save(true);
     });
     momBirth.addEventListener('change', function () { f.momBirth = momBirth.value; save(true); });
     dadBirth.addEventListener('change', function () { f.dadBirth = dadBirth.value; save(true); });
@@ -334,24 +411,25 @@
     var saveBtn = $('#saveFamily');
     if (saveBtn) saveBtn.addEventListener('click', function () {
       if (!f.baby) { toast('아기 이름(태명)을 먼저 적어 주세요.'); baby.focus(); return; }
-      if (!f.birth) { toast('아기 생일을 넣어 주세요.'); babyBirth.focus(); return; }
-      if (!babySolar()) { toast('아기 생일을 다시 확인해 주세요.'); return; }
-      save(true); flashSaved(); updateBrand(); setOnboard(); toast('가족 정보를 저장했어요.');
+      if (!f.birth && !f.due) { toast('아기 생일 또는 출산 예정일 중 하나는 넣어 주세요.'); babyBirth.focus(); return; }
+      if (f.birth && !babySolar()) { toast('아기 생일을 다시 확인해 주세요.'); return; }
+      save(true); flashSaved(); updateBrand(); setOnboard(); renderDay(); toast('가족 정보를 저장했어요.');
     });
     var go = $('#goDiary');
     if (go) go.addEventListener('click', function () {
       save(true); updateBrand(); setOnboard(); showPage(4);
-      if (!f.birth) toast('생일을 넣으면 생후 일수가 함께 보여요.');
+      if (!f.birth && !f.due) toast('생일이나 예정일을 넣으면 생후 일수와 만남까지 남은 날이 함께 보여요.');
     });
 
     var seg = f.cal;
     $$('#calSegment .segment-btn').forEach(function (b) { b.classList.toggle('active', b.dataset.cal === seg); });
     syncLeapUI();
     setBirthHint();
+    setDueHint();
   }
 
   function setOnboard() {
-    var configured = !!(state.family.baby && state.family.birth && babySolar());
+    var configured = !!(state.family.baby && familyStatus().mode !== 'empty');
     var ob = $('#onboard'), dob = $('#diaryOnboard');
     if (ob) ob.hidden = configured;
     if (dob) dob.hidden = configured;
@@ -411,12 +489,20 @@
   }
 
   function dayLine(dateISO) {
-    var sol = babySolarISO();
-    if (!sol) return '생일을 등록하면 생후 일수를 알려드려요';
-    var diff = dayDiff(sol, dateISO);
-    if (diff < 0) return '태어나기 ' + Math.abs(diff) + '일 전';
-    var age = ageText(sol, dateISO);
-    return '태어난 지 +' + diff + '일' + (age ? ' · ' + age : '');
+    var st = familyStatus();
+    if (st.mode === 'born') {
+      var diff = dayDiff(st.birth, dateISO);
+      if (diff < 0) return '태어나기 ' + Math.abs(diff) + '일 전';
+      var age = ageText(st.birth, dateISO);
+      return '태어난 지 +' + diff + '일' + (age ? ' · ' + age : '');
+    }
+    if (st.mode === 'expecting') {
+      var d = dayDiff(dateISO, st.target);
+      var line = countdownText(d, dateISO === todayISO());
+      var preg = pregnancyOf(st.weekBase, dateISO);
+      return line + (preg ? ' · 임신 ' + preg.text : '');
+    }
+    return '생일이나 출산 예정일을 등록하면 함께 보여드려요';
   }
 
   function updateAuthorUI() {
@@ -864,7 +950,7 @@
       try { history.replaceState(null, '', location.pathname + location.search); }
       catch (e) { location.hash = ''; }
       hideShare();
-      showPage(state.family.baby && state.family.birth ? 4 : 1);
+      showPage(state.family.baby && familyStatus().mode !== 'empty' ? 4 : 1);
     });
     foot.appendChild(open);
     letter.appendChild(foot);
@@ -1181,73 +1267,107 @@
 
   function buildInfo() {
     var f = state.family;
-    var sol = babySolar();
+    var st = familyStatus();
     var nameEl = $('#infoName');
     if (nameEl) nameEl.textContent = f.baby || '아기 이름';
-    var birthEl = $('#infoBirth'), lunarEl = $('#infoLunar');
+    var birthEl = $('#infoBirth'), lunarEl = $('#infoLunar'), noteEl = $('#infoNote');
     var grid = $('#ddayGrid'), cards = $('#infoCards');
 
-    if (!sol) {
-      if (birthEl) birthEl.textContent = '아기 생일을 등록하면 여기에 정보가 채워져요';
+    var expecting = st.mode === 'expecting';
+    var target = st.target;
+
+    if (!target) {
+      if (birthEl) birthEl.textContent = '아기 생일이나 출산 예정일을 등록하면 여기에 정보가 채워져요';
       if (lunarEl) lunarEl.textContent = '';
-      if (grid) grid.innerHTML = '<div class="dday-card"><p class="dday-label">아직 생일이 없어요</p><p class="dday-value">1p</p><p class="dday-date">가족 소개에서 아기 생일을 넣어 주세요</p></div>';
+      if (noteEl) { noteEl.hidden = true; noteEl.textContent = ''; }
+      if (grid) grid.innerHTML = '<div class="dday-card"><p class="dday-label">아직 생일도 예정일도 없어요</p><p class="dday-value">1p</p><p class="dday-date">가족 소개에서 생일이나 예정일을 넣어 주세요</p></div>';
       if (cards) cards.innerHTML = '';
       return;
     }
 
-    var birthISO = sol.y + '-' + pad(sol.m) + '-' + pad(sol.d);
-    var lun = window.LunarCal ? LunarCal.solarToLunar(sol.y, sol.m, sol.d) : null;
+    var tp = parts(target);
+    var targetISO = tp.y + '-' + pad(tp.m) + '-' + pad(tp.d);
+    var lun = window.LunarCal ? LunarCal.solarToLunar(tp.y, tp.m, tp.d) : null;
+    var today = todayISO();
 
-    if (birthEl) birthEl.textContent = '양력 ' + sol.y + '년 ' + sol.m + '월 ' + sol.d + '일 (' + WEEK[weekdayOf(birthISO)] + '요일)';
-    if (lunarEl) lunarEl.textContent = lun ? ('음력 ' + lun.y + '년 ' + (lun.leap ? '윤' : '') + lun.m + '월 ' + lun.d + '일') : '';
+    if (noteEl) {
+      noteEl.hidden = !expecting;
+      noteEl.textContent = expecting ? '지금은 출산 예정일 기준 미리보기예요. 실제 태어난 날 생일을 등록하면 띠·별자리·탄생석·꽃말이 실제 생일 기준으로 바뀝니다.' : '';
+    }
 
-    // 기념일
-    var hundred = addDays(birthISO, 99);
-    var firstBirthday = addYears(birthISO, 1);
-    var nextBirth = nextAnnual(birthISO);
-    if (grid) {
-      grid.innerHTML =
-        ddayCardHTML('100일', hundred, '출생일을 1일로 세는 한국식') +
-        ddayCardHTML('첫돌', firstBirthday, '양력 생일 기준 1년') +
-        ddayCardHTML('다가오는 생일', nextBirth, (parts(nextBirth).y - sol.y) + '번째 생일');
+    if (expecting) {
+      var cd = dayDiff(today, targetISO);
+      var preg = pregnancyOf(st.weekBase, today);
+      if (birthEl) birthEl.textContent = '출산 예정일 ' + tp.y + '년 ' + tp.m + '월 ' + tp.d + '일 (' + WEEK[weekdayOf(targetISO)] + '요일)';
+      if (lunarEl) lunarEl.textContent = (lun ? '음력 ' + lun.y + '년 ' + (lun.leap ? '윤' : '') + lun.m + '월 ' + lun.d + '일 · ' : '') + countdownText(cd, true);
+      if (grid) {
+        var stc = ddayState(cd);
+        var meet = '<div class="dday-card">' +
+          '<p class="dday-label">' + (cd < 0 ? '예정일에서' : '만남까지') + '</p>' +
+          '<p class="dday-value">' + esc(ddayLabel(cd)) + '</p>' +
+          '<p class="dday-date">' + esc(fmtShort(targetISO)) + ' (' + WEEK[weekdayOf(targetISO)] + ')</p>' +
+          '<span class="dday-state ' + stc.cls + '">' + esc(stc.text) + '</span></div>';
+        var weekCard = preg
+          ? '<div class="dday-card"><p class="dday-label">임신 주수</p><p class="dday-value">' + esc(preg.text) + '</p><p class="dday-date">마지막 생리일 ' + esc(fmtShort(preg.lmp)) + ' 기준</p><span class="dday-state upcoming">280일 역산</span></div>'
+          : '<div class="dday-card"><p class="dday-label">임신 주수</p><p class="dday-value">-</p><p class="dday-date">임신 기간(약 40주) 밖이에요</p></div>';
+        grid.innerHTML = meet + weekCard + ddayCardHTML('100일', addDays(targetISO, 99), '예정일 기준');
+      }
+    } else {
+      var birthISO = st.birth;
+      if (birthEl) birthEl.textContent = '양력 ' + tp.y + '년 ' + tp.m + '월 ' + tp.d + '일 (' + WEEK[weekdayOf(birthISO)] + '요일)';
+      var lunarTxt = lun ? ('음력 ' + lun.y + '년 ' + (lun.leap ? '윤' : '') + lun.m + '월 ' + lun.d + '일') : '';
+      if (st.due) {
+        var gap = dayDiff(birthISO, st.due); // +면 예정일보다 늦게
+        lunarTxt += (lunarTxt ? ' · ' : '') + '출산 예정일 ' + fmtShort(st.due) + ' (' +
+          (gap > 0 ? '예정일보다 ' + gap + '일 늦게 만났어요' : (gap < 0 ? '예정일보다 ' + Math.abs(gap) + '일 일찍 만났어요' : '예정일에 만났어요')) + ')';
+      }
+      if (lunarEl) lunarEl.textContent = lunarTxt;
+      if (grid) {
+        var nextBirth = nextAnnual(birthISO);
+        grid.innerHTML =
+          ddayCardHTML('100일', addDays(birthISO, 99), '출생일을 1일로 세는 한국식') +
+          ddayCardHTML('첫돌', addYears(birthISO, 1), '양력 생일 기준 1년') +
+          ddayCardHTML('다가오는 생일', nextBirth, (parts(nextBirth).y - tp.y) + '번째 생일');
+      }
     }
 
     var html = '';
+    var pre = expecting ? '예정일 기준 미리보기 · ' : '';
 
     // 띠
-    var zYear = lun ? lun.y : sol.y;
+    var zYear = lun ? lun.y : tp.y;
     var z = zodiacOf(zYear);
     html += '<article class="card info-card">' +
       '<div class="info-card-head"><span class="info-icon">' + z.emoji + '</span><p class="info-main">' + esc(z.name) + '띠</p></div>' +
-      '<p class="info-sub">' + esc(f.baby || '아기') + '는 ' + esc(z.note) + ' 아이예요.</p>' +
+      '<p class="info-sub">' + esc(pre) + esc(f.baby || '아기') + '는 ' + esc(z.note) + ' 아이예요.</p>' +
       '<div class="info-list"><span class="info-pill peach">' + esc(ganjiOfYear(zYear)) + '</span><span class="info-pill">' + esc(z.hanja) + ' · 12지신 ' + (ZODIAC_ANIMALS.indexOf(z) + 1) + '번째</span></div>' +
-      '<p class="info-sub">띠는 음력 설날(' + esc(lun ? (lun.y + '년 음력 1월 1일') : '음력 1월 1일') + ')을 기준으로 바뀌어요. ' + esc(ipchunNote(sol.m, sol.d) || '사주(명리)에서는 입춘(2월 3~5일)을 한 해의 경계로 보기도 합니다.') + '</p>' +
+      '<p class="info-sub">띠는 음력 설날(' + esc(lun ? (lun.y + '년 음력 1월 1일') : '음력 1월 1일') + ')을 기준으로 바뀌어요. ' + esc(ipchunNote(tp.m, tp.d) || '사주(명리)에서는 입춘(2월 3~5일)을 한 해의 경계로 보기도 합니다.') + '</p>' +
       '</article>';
 
     // 별자리
-    var c = constellationOf(sol.m, sol.d);
+    var c = constellationOf(tp.m, tp.d);
     html += '<article class="card info-card">' +
       '<div class="info-card-head"><span class="info-icon">' + c.symbol + '</span><p class="info-main">' + esc(c.name) + '</p></div>' +
-      '<p class="info-sub">' + esc(c.note) + '</p>' +
-      '<div class="info-list"><span class="info-pill sky">' + c.start[0] + '월 ' + c.start[1] + '일 ~ ' + c.end[0] + '월 ' + c.end[1] + '일</span><span class="info-pill">양력 ' + sol.m + '월 ' + sol.d + '일</span></div>' +
+      '<p class="info-sub">' + esc(pre) + esc(c.note) + '</p>' +
+      '<div class="info-list"><span class="info-pill sky">' + c.start[0] + '월 ' + c.start[1] + '일 ~ ' + c.end[0] + '월 ' + c.end[1] + '일</span><span class="info-pill">' + (expecting ? '예정일 ' : '양력 ') + tp.m + '월 ' + tp.d + '일</span></div>' +
       '</article>';
 
     // 탄생석
-    var stone = BIRTHSTONES[sol.m];
+    var stone = BIRTHSTONES[tp.m];
     html += '<article class="card info-card">' +
       '<div class="info-card-head"><span class="stone-dot" style="background:' + stone.color + '"></span><p class="info-main">' + esc(stone.name) + '</p></div>' +
-      '<p class="info-sub">' + sol.m + '월의 탄생석 · ' + esc(stone.en) + '</p>' +
+      '<p class="info-sub">' + esc(pre) + tp.m + '월의 탄생석 · ' + esc(stone.en) + '</p>' +
       '<div class="info-list"><span class="info-pill peach">의미 · ' + esc(stone.meaning) + '</span></div>' +
       '</article>';
 
     // 탄생화
-    var key = sol.m + '-' + sol.d;
+    var key = tp.m + '-' + tp.d;
     var flower = (window.BIRTH_FLOWERS && BIRTH_FLOWERS[key]) || null;
-    var mf = MONTH_FLOWERS[sol.m];
+    var mf = MONTH_FLOWERS[tp.m];
     html += '<article class="card info-card">' +
       '<div class="info-card-head"><span class="flower-emoji">🌸</span><p class="info-main">' + esc(flower ? flower[0] : mf.name) + '</p></div>' +
-      '<p class="info-sub">' + esc(sol.m) + '월 ' + esc(sol.d) + '일의 탄생화' + (flower ? '' : ' (월별 기준)') + '</p>' +
-      '<div class="info-list"><span class="info-pill">꽃말 · ' + esc(flower ? flower[1] : mf.meaning) + '</span><span class="info-pill sky">' + sol.m + '월 대표 · ' + esc(mf.name) + '</span></div>' +
+      '<p class="info-sub">' + esc(pre) + esc(tp.m) + '월 ' + esc(tp.d) + '일의 탄생화' + (flower ? '' : ' (월별 기준)') + '</p>' +
+      '<div class="info-list"><span class="info-pill">꽃말 · ' + esc(flower ? flower[1] : mf.meaning) + '</span><span class="info-pill sky">' + tp.m + '월 대표 · ' + esc(mf.name) + '</span></div>' +
       '</article>';
 
     // 부모님 생일
@@ -1276,37 +1396,131 @@
   }
 
   /* ---------------- 백업 ---------------- */
-  function bindBackup() {
-    $('#exportBtn').addEventListener('click', function () {
-      var data = JSON.stringify(state, null, 2);
-      var blob = new Blob([data], { type: 'application/json' });
+  function backupText() { return JSON.stringify(state); }
+  function backupFileName() { return 'baby-diary-backup-' + todayISO() + '.txt'; }
+
+  function downloadTextFile(text, filename) {
+    try {
+      var blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
       var url = URL.createObjectURL(blob);
       var a = document.createElement('a');
       a.href = url;
-      a.download = '육아일기_백업_' + todayISO() + '.json';
+      a.download = filename;
+      a.rel = 'noopener';
       document.body.appendChild(a);
       a.click();
       a.remove();
-      setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
-      toast('백업 파일을 내려받았어요.');
+      setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+      return true;
+    } catch (e) { return false; }
+  }
+
+  function openPasteModal(prefill) {
+    var modal = $('#pasteModal');
+    if (!modal) return;
+    var area = $('#pasteArea');
+    if (area) area.value = prefill || '';
+    modal.hidden = false;
+    document.body.classList.add('modal-open');
+    setTimeout(function () {
+      if (!area) return;
+      area.focus();
+      if (prefill) { try { area.setSelectionRange(0, prefill.length); } catch (e) { /* noop */ } }
+    }, 60);
+  }
+
+  function closePasteModal() {
+    var modal = $('#pasteModal');
+    if (modal) modal.hidden = true;
+    document.body.classList.remove('modal-open');
+  }
+
+  function applyBackupText(raw) {
+    var text = String(raw == null ? '' : raw).trim();
+    if (!text) { toast('붙여넣은 내용이 비어 있어요.'); return false; }
+    var incoming;
+    try { incoming = JSON.parse(text); } catch (e) { toast('백업 내용을 읽지 못했어요. 글자가 잘리지 않았는지 확인해 주세요.'); return false; }
+    if (!incoming || !incoming.family || !incoming.diary) { toast('이 앱의 백업 내용이 아니에요.'); return false; }
+    var ok = window.confirm('가져온 기록을 지금 일기에 합칠까요?\n기존 기록은 그대로 두고, 없는 기록만 더합니다.');
+    if (!ok) return false;
+    mergeBackup(incoming);
+    save(true);
+    refreshAll();
+    toast('백업을 합쳤어요.');
+    return true;
+  }
+
+  function copyBackup() {
+    var data = backupText();
+    copyText(data).then(function () {
+      toast('백업 텍스트를 복사했어요. 카톡 나에게 보내기·메모에 붙여넣어 두세요.');
+    }).catch(function () {
+      openPasteModal(data);
+      toast('복사가 막혀 있어요. 열린 창의 글을 길게 눌러 전체 복사해 주세요.');
     });
+  }
+
+  function shareBackup() {
+    var data = backupText();
+    var fname = backupFileName();
+    var file = null;
+    try { file = new File([data], fname, { type: 'text/plain' }); } catch (e) { file = null; }
+
+    function saveFile() {
+      if (downloadTextFile(data, fname)) {
+        toast('백업 파일을 저장했어요. 다운로드 폴더의 ' + fname + '을 확인해 주세요.');
+      } else {
+        openPasteModal(data);
+        toast('파일 저장이 막혀 있어요. 백업 텍스트 복사를 이용해 주세요.');
+      }
+    }
+    function sharePlainText() {
+      if (data.length < 80000 && navigator.share) {
+        navigator.share({ title: '우리 아기 육아일기 백업', text: data })
+          .catch(function (err) { if (!err || err.name !== 'AbortError') saveFile(); });
+        return;
+      }
+      saveFile();
+    }
+
+    if (navigator.share && file && navigator.canShare && navigator.canShare({ files: [file] })) {
+      navigator.share({ files: [file], title: '우리 아기 육아일기 백업', text: '우리 아기 육아일기 백업이에요.' })
+        .catch(function (err) { if (!err || err.name !== 'AbortError') sharePlainText(); });
+      return;
+    }
+    sharePlainText();
+  }
+
+  function bindBackup() {
+    var copyBtn = $('#copyBackupBtn');
+    if (copyBtn) copyBtn.addEventListener('click', copyBackup);
+    var pasteBtn = $('#pasteMergeBtn');
+    if (pasteBtn) pasteBtn.addEventListener('click', function () { openPasteModal(''); });
+    var shareBtn = $('#shareBackupBtn');
+    if (shareBtn) shareBtn.addEventListener('click', shareBackup);
+
+    var modal = $('#pasteModal');
+    if (modal) {
+      var closeBtn = $('#pasteClose'), cancelBtn = $('#pasteCancel'), confirmBtn = $('#pasteMergeConfirm');
+      if (closeBtn) closeBtn.addEventListener('click', closePasteModal);
+      if (cancelBtn) cancelBtn.addEventListener('click', closePasteModal);
+      modal.addEventListener('click', function (e) { if (e.target === modal) closePasteModal(); });
+      if (confirmBtn) confirmBtn.addEventListener('click', function () {
+        if (applyBackupText($('#pasteArea').value)) closePasteModal();
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && !modal.hidden) closePasteModal();
+      });
+    }
 
     var file = $('#importFile');
-    $('#importBtn').addEventListener('click', function () { file.click(); });
-    file.addEventListener('change', function () {
+    var importBtn = $('#importBtn');
+    if (importBtn && file) importBtn.addEventListener('click', function () { file.click(); });
+    if (file) file.addEventListener('change', function () {
       var f = file.files && file.files[0];
       if (!f) return;
       var reader = new FileReader();
-      reader.onload = function () {
-        var incoming;
-        try { incoming = JSON.parse(String(reader.result)); } catch (e) { toast('백업 파일을 읽지 못했어요.'); return; }
-        if (!incoming || !incoming.family || !incoming.diary) { toast('이 앱의 백업 파일이 아니에요.'); return; }
-        var ok = window.confirm('가져온 기록을 지금 일기에 합칠까요?\n기존 기록은 그대로 두고, 없는 기록만 더합니다.');
-        if (!ok) { file.value = ''; return; }
-        mergeBackup(incoming);
-        save(true); refreshAll();
-        toast('백업을 합쳤어요.');
-      };
+      reader.onload = function () { applyBackupText(reader.result); };
       reader.onerror = function () { toast('파일을 읽지 못했어요.'); };
       reader.readAsText(f);
       file.value = '';
@@ -1325,7 +1539,7 @@
 
   function mergeBackup(incoming) {
     var f = state.family;
-    ['mom', 'dad', 'baby', 'birth', 'cal', 'momBirth', 'dadBirth'].forEach(function (k) {
+    ['mom', 'dad', 'baby', 'birth', 'due', 'cal', 'momBirth', 'dadBirth'].forEach(function (k) {
       if (!f[k] && incoming.family && incoming.family[k]) f[k] = incoming.family[k];
     });
     ['parents', 'baby'].forEach(function (k) {
@@ -1359,8 +1573,9 @@
     var f = state.family;
     $('#momName').value = f.mom; $('#dadName').value = f.dad; $('#babyName').value = f.baby;
     $('#babyBirth').value = f.birth; $('#momBirth').value = f.momBirth; $('#dadBirth').value = f.dadBirth;
+    var dueEl = $('#babyDue'); if (dueEl) dueEl.value = f.due || '';
     $$('#calSegment .segment-btn').forEach(function (b) { b.classList.toggle('active', b.dataset.cal === f.cal); });
-    syncLeapUI(); setBirthHint(); updateBrand(); setOnboard(); renderDay();
+    syncLeapUI(); setBirthHint(); setDueHint(); updateBrand(); setOnboard(); renderDay();
     if ($('#page-5').classList.contains('active')) buildInfo();
   }
 
@@ -1568,7 +1783,7 @@
     renderDay();
     checkShare();
 
-    var configured = !!(state.family.baby && babySolar());
+    var configured = !!(state.family.baby && familyStatus().mode !== 'empty');
     showPage(configured ? 4 : 1);
 
     window.addEventListener('hashchange', checkShare);

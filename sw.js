@@ -1,5 +1,5 @@
 /* 우리 아기 육아일기 — 오프라인 캐시 서비스워커 */
-const CACHE = 'baby-diary-v1';
+const CACHE = 'baby-diary-v2';
 const ASSETS = [
   './',
   './index.html',
