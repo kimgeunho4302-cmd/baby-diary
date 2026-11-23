@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>우리 아기 육아일기 · Baby Diary</title>
+<meta name="theme-color" content="#FFF4EA">
+<meta name="description" content="엄마·아빠가 함께 쓰는 우리 아기 육아일기. 음력 생일, 백일·첫돌, 탄생화까지 한 번에.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="육아일기">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app" id="app">
+
+  <header class="appbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">🍼</span>
+      <div class="brand-text">
+        <h1 class="brand-title">우리 아기 육아일기</h1>
+        <p class="brand-sub" id="brandSub">아이 정보를 등록해 주세요</p>
+      </div>
+    </div>
+    <nav class="tabs" id="tabs" aria-label="페이지 이동">
+      <button type="button" class="tab" data-tab="1">가족 소개</button>
+      <button type="button" class="tab" data-tab="2">첫 만남</button>
+      <button type="button" class="tab" data-tab="3">탄생 기록</button>
+      <button type="button" class="tab" data-tab="4">오늘의 일기</button>
+      <button type="button" class="tab" data-tab="5">아기 정보</button>
+    </nav>
+  </header>
+
+  <main class="main" id="main">
+
+    <!-- 1p 가족 소개 -->
+    <section class="page" id="page-1" data-page="1" aria-label="가족 소개">
+      <div class="onboard" id="onboard" hidden>
+        <span class="onboard-emoji" aria-hidden="true">🌱</span>
+        <p>아직 아이 정보가 없어요. <strong>아기 이름과 생일</strong>만 넣으면 오늘의 일기를 바로 쓸 수 있어요.</p>
+      </div>
+
+      <article class="card">
+        <div class="card-head">
+          <h2 class="card-title">가족 소개</h2>
+          <span class="step">1p</span>
+        </div>
+        <p class="card-desc">엄마·아빠와 아기의 이름을 적어 주세요. 아기 이름과 생일은 일기와 아기 정보 페이지에 함께 쓰여요.</p>
+
+        <div class="field-grid">
+          <label class="field" for="momName">
+            <span class="field-label">엄마 이름</span>
+            <input id="momName" type="text" maxlength="20" placeholder="예: 김민지" autocomplete="off">
+          </label>
+          <label class="field" for="dadName">
+            <span class="field-label">아빠 이름</span>
+            <input id="dadName" type="text" maxlength="20" placeholder="예: 김근호" autocomplete="off">
+          </label>
+          <label class="field field-wide" for="babyName">
+            <span class="field-label">아기 이름 (태명) <em class="req">필수</em></span>
+            <input id="babyName" type="text" maxlength="20" placeholder="예: 콩이" autocomplete="off">
+          </label>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card-head">
+          <h2 class="card-title">생일</h2>
+          <span class="badge-soft">아기 생일은 필수</span>
+        </div>
+
+        <div class="field">
+          <span class="field-label">아기 생일</span>
+          <div class="birth-row">
+            <input id="babyBirth" type="date" min="1900-01-31" max="2050-12-31">
+            <div class="segment" id="calSegment" role="group" aria-label="달력 구분">
+              <button type="button" class="segment-btn active" data-cal="solar" id="calSolar">양력</button>
+              <button type="button" class="segment-btn" data-cal="lunar" id="calLunar">음력</button>
+            </div>
+          </div>
+          <label class="check" id="leapWrap" for="babyLeap" hidden>
+            <input id="babyLeap" type="checkbox">
+            <span>윤달에 태어났어요 (해당 없는 해는 자동 무시)</span>
+          </label>
+          <p class="hint" id="birthHint">아기 생일을 넣으면 음력·띠·별자리·100일·첫돌을 자동으로 계산해 드려요.</p>
+        </div>
+
+        <div class="field-grid">
+          <label class="field" for="momBirth">
+            <span class="field-label">엄마 생일 <span class="opt">선택</span></span>
+            <input id="momBirth" type="date" min="1900-01-31" max="2050-12-31">
+          </label>
+          <label class="field" for="dadBirth">
+            <span class="field-label">아빠 생일 <span class="opt">선택</span></span>
+            <input id="dadBirth" type="date" min="1900-01-31" max="2050-12-31">
+          </label>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-primary" id="saveFamily">저장하기</button>
+          <button type="button" class="btn btn-ghost" id="goDiary">오늘의 일기로</button>
+          <span class="save-hint" id="familyHint"></span>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card-head">
+          <h2 class="card-title">백업과 옮기기</h2>
+          <span class="step">JSON</span>
+        </div>
+        <p class="card-desc">엄마 폰과 아빠 폰에서 따로 쓰고 있다면, 내보낸 파일을 서로 가져와 합칠 수 있어요. 문자·메신저로 파일을 보내면 됩니다.</p>
+        <div class="form-actions">
+          <button type="button" class="btn btn-soft" id="exportBtn">내보내기</button>
+          <button type="button" class="btn btn-soft" id="importBtn">가져와 합치기</button>
+          <input type="file" id="importFile" accept="application/json,.json" hidden>
+          <button type="button" class="btn btn-danger-ghost" id="resetBtn">전체 삭제</button>
+        </div>
+        <p class="hint" id="backupHint">사진은 자동으로 줄여서 저장하므로, 백업 파일 하나에 모든 기록이 담깁니다.</p>
+      </article>
+    </section>
+
+    <!-- 2p 첫 만남 -->
+    <section class="page" id="page-2" data-page="2" aria-label="첫 만남">
+      <div class="page-head">
+        <h2 class="page-title">첫 만남</h2>
+        <p class="page-desc">우리가 처음 만난 날, 그리고 아기를 처음 만난 날을 남겨 주세요.</p>
+      </div>
+
+      <article class="card">
+        <div class="card-head">
+          <h3 class="card-title">① 엄마·아빠의 첫 만남</h3>
+          <span class="step">2p</span>
+        </div>
+        <div class="photo-field">
+          <input type="file" accept="image/*" id="p1photo" class="file-input" hidden>
+          <button type="button" class="photo-drop" id="p1drop">
+            <span class="photo-icon" aria-hidden="true">📷</span>
+            <span class="photo-drop-text">사진 추가</span>
+          </button>
+          <div class="photo-preview" id="p1preview" hidden>
+            <img id="p1img" alt="엄마·아빠의 첫 만남 사진">
+            <button type="button" class="photo-remove" id="p1remove">사진 삭제</button>
+          </div>
+        </div>
+        <label class="field" for="p1memo">
+          <span class="field-label">그날의 이야기</span>
+          <textarea id="p1memo" rows="4" maxlength="600" placeholder="어디에서 어떻게 만났는지 적어 주세요."></textarea>
+        </label>
+        <label class="field" for="p1date">
+          <span class="field-label">날짜 <span class="opt">선택</span></span>
+          <input id="p1date" type="date" min="1900-01-31" max="2050-12-31">
+        </label>
+      </article>
+
+      <article class="card">
+        <div class="card-head">
+          <h3 class="card-title">② 아기와의 첫 만남</h3>
+          <span class="step">2p</span>
+        </div>
+        <div class="photo-field">
+          <input type="file" accept="image/*" id="b1photo" class="file-input" hidden>
+          <button type="button" class="photo-drop" id="b1drop">
+            <span class="photo-icon" aria-hidden="true">📷</span>
+            <span class="photo-drop-text">사진 추가</span>
+          </button>
+          <div class="photo-preview" id="b1preview" hidden>
+            <img id="b1img" alt="아기와의 첫 만남 사진">
+            <button type="button" class="photo-remove" id="b1remove">사진 삭제</button>
+          </div>
+        </div>
+        <label class="field" for="b1memo">
+          <span class="field-label">그날의 이야기</span>
+          <textarea id="b1memo" rows="4" maxlength="600" placeholder="처음 눈을 맞춘 순간을 적어 주세요."></textarea>
+        </label>
+        <label class="field" for="b1date">
+          <span class="field-label">날짜 <span class="opt">선택</span></span>
+          <input id="b1date" type="date" min="1900-01-31" max="2050-12-31">
+        </label>
+      </article>
+    </section>
+
+    <!-- 3p 탄생 기록 -->
+    <section class="page" id="page-3" data-page="3" aria-label="탄생 기록">
+      <div class="page-head">
+        <h2 class="page-title">탄생 기록</h2>
+        <p class="page-desc">세상에 나온 그날을 기록해 두세요.</p>
+      </div>
+
+      <article class="card">
+        <div class="photo-field">
+          <input type="file" accept="image/*" id="birthPhoto" class="file-input" hidden>
+          <button type="button" class="photo-drop" id="birthDrop">
+            <span class="photo-icon" aria-hidden="true">📷</span>
+            <span class="photo-drop-text">출생 사진 추가</span>
+          </button>
+          <div class="photo-preview" id="birthPreview" hidden>
+            <img id="birthImg" alt="아기 출생 사진">
+            <button type="button" class="photo-remove" id="birthRemove">사진 삭제</button>
+          </div>
+        </div>
+
+        <div class="field-grid">
+          <label class="field" for="birthPlace">
+            <span class="field-label">태어난 곳</span>
+            <input id="birthPlace" type="text" maxlength="60" placeholder="예: 서울성모병원">
+          </label>
+          <label class="field" for="birthTime">
+            <span class="field-label">태어난 시간</span>
+            <input id="birthTime" type="time">
+          </label>
+          <div class="field">
+            <span class="field-label">몸무게</span>
+            <div class="input-unit">
+              <input id="birthWeight" type="number" inputmode="decimal" min="0" step="0.01" placeholder="3.2">
+              <select id="birthUnit" aria-label="몸무게 단위">
+                <option value="kg">kg</option>
+                <option value="g">g</option>
+              </select>
+            </div>
+          </div>
+          <label class="field" for="birthHeight">
+            <span class="field-label">키 (cm) <span class="opt">선택</span></span>
+            <input id="birthHeight" type="number" inputmode="decimal" min="0" step="0.1" placeholder="50.2">
+          </label>
+        </div>
+
+        <label class="field" for="birthMemo">
+          <span class="field-label">출생 메모 <span class="opt">선택</span></span>
+          <textarea id="birthMemo" rows="3" maxlength="400" placeholder="첫 울음소리, 함께한 사람들…"></textarea>
+        </label>
+        <p class="hint" id="birthSaved">적는 대로 자동 저장돼요.</p>
+      </article>
+    </section>
+
+    <!-- 4p 오늘의 일기 -->
+    <section class="page" id="page-4" data-page="4" aria-label="오늘의 일기">
+      <div class="onboard" id="diaryOnboard" hidden>
+        <span class="onboard-emoji" aria-hidden="true">🌱</span>
+        <p>먼저 <strong>아기 이름과 생일</strong>을 등록하면 생후 일수와 기념일이 함께 보여요.</p>
+        <button type="button" class="btn btn-ghost btn-sm" id="goFamily">가족 소개로</button>
+      </div>
+
+      <div class="daybar card">
+        <div class="daybar-nav">
+          <button type="button" class="nav-arrow" id="prevDay" aria-label="이전 날">‹</button>
+          <div class="daybar-center">
+            <p class="daybar-date" id="dateLabel">오늘</p>
+            <p class="daybar-sub" id="dateSub">태어난 지 +0일</p>
+          </div>
+          <button type="button" class="nav-arrow" id="nextDay" aria-label="다음 날">›</button>
+        </div>
+        <div class="daybar-row">
+          <button type="button" class="btn btn-ghost btn-sm" id="todayBtn">오늘</button>
+          <label class="daypicker" for="dayPicker">
+            <span class="sr-only">날짜 선택</span>
+            <span class="daypicker-face" id="dayPickerFace">날짜 선택</span>
+            <input type="date" id="dayPicker" min="1900-01-31">
+          </label>
+          <span class="day-count" id="dayCount">기록 0건</span>
+        </div>
+      </div>
+
+      <div class="diary-layout">
+        <article class="card entry-form" id="entryForm">
+          <div class="author-switch" role="group" aria-label="작성자 선택">
+            <button type="button" class="author-btn active" data-author="mom" id="authorMom">👩 엄마</button>
+            <button type="button" class="author-btn" data-author="dad" id="authorDad">👨 아빠</button>
+          </div>
+
+          <label class="field" for="entryText">
+            <span class="field-label">오늘의 이야기</span>
+            <textarea id="entryText" rows="5" maxlength="1000" placeholder="오늘 아기와 있었던 일을 적어 주세요."></textarea>
+          </label>
+
+          <div class="photo-field photo-field-sm">
+            <input type="file" accept="image/*" id="entryPhoto" class="file-input" hidden>
+            <button type="button" class="photo-drop" id="entryDrop">
+              <span class="photo-icon" aria-hidden="true">📷</span>
+              <span class="photo-drop-text">오늘의 사진</span>
+            </button>
+            <div class="photo-preview" id="entryPreview" hidden>
+              <img id="entryImg" alt="오늘의 사진">
+              <button type="button" class="photo-remove" id="entryRemove">사진 삭제</button>
+            </div>
+          </div>
+
+          <div class="field-grid">
+            <label class="field" for="entryMood">
+              <span class="field-label">기분·컨디션</span>
+              <select id="entryMood">
+                <option value="">선택 안 함</option>
+              </select>
+            </label>
+            <label class="field" for="feedMemo">
+              <span class="field-label">수유 메모 <span class="opt">선택</span></span>
+              <input id="feedMemo" type="text" maxlength="60" placeholder="예: 분유 120ml ×4">
+            </label>
+            <label class="field" for="sleepMemo">
+              <span class="field-label">수면 메모 <span class="opt">선택</span></span>
+              <input id="sleepMemo" type="text" maxlength="60" placeholder="예: 낮잠 2시간">
+            </label>
+          </div>
+
+          <div class="tag-block">
+            <span class="field-label">오늘의 태그</span>
+            <div class="tag-row" id="tagRow"></div>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-primary" id="saveEntry">기록 저장</button>
+            <button type="button" class="btn btn-ghost" id="cancelEdit" hidden>수정 취소</button>
+            <span class="save-hint" id="entryHint">저장한 기록은 이 기기에 남아요.</span>
+          </div>
+        </article>
+
+        <div class="entries">
+          <div class="entries-head">
+            <h3 class="entries-title">이 날의 기록</h3>
+            <div class="share-actions">
+              <button type="button" class="btn btn-soft btn-sm" id="shareBtn">이 날 일기 공유</button>
+              <button type="button" class="btn btn-soft btn-sm" id="cardBtn">카드로 저장 (PNG)</button>
+            </div>
+          </div>
+          <div class="entry-list" id="entryList"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5p 아기 정보 -->
+    <section class="page" id="page-5" data-page="5" aria-label="아기 정보">
+      <div class="info-hero card">
+        <p class="info-hero-name" id="infoName">아기 이름</p>
+        <p class="info-hero-birth" id="infoBirth">생일을 등록해 주세요</p>
+        <p class="info-hero-lunar" id="infoLunar"></p>
+      </div>
+      <div class="grid-3" id="ddayGrid"></div>
+      <div class="grid-2" id="infoCards"></div>
+      <p class="info-note">
+        음력·띠·기념일은 한국천문연구원(KARI) 음양력 자료(1900~2050)로 계산합니다.
+        띠는 음력 설날을 기준으로 하고, 사주(명리)에서는 입춘을 한 해의 경계로 보아 입춘 전 출생이면 전년도 띠로 보는 경우가 있어요.
+        별자리는 양력 날짜, 탄생석·탄생화는 일반에 널리 쓰이는 목록을 기준으로 했습니다.
+      </p>
+    </section>
+
+  </main>
+
+  <nav class="bottomnav" id="bottomnav" aria-label="페이지 이동">
+    <button type="button" class="bottom-item" data-tab="1"><span aria-hidden="true">👨‍👩‍👧</span><em>가족</em></button>
+    <button type="button" class="bottom-item" data-tab="2"><span aria-hidden="true">💞</span><em>첫 만남</em></button>
+    <button type="button" class="bottom-item" data-tab="3"><span aria-hidden="true">🌷</span><em>탄생</em></button>
+    <button type="button" class="bottom-item active" data-tab="4"><span aria-hidden="true">📖</span><em>일기</em></button>
+    <button type="button" class="bottom-item" data-tab="5"><span aria-hidden="true">⭐</span><em>아기 정보</em></button>
+  </nav>
+
+  <div class="player" id="player">
+    <button type="button" class="player-btn" id="playBtn" aria-label="자장가 재생" aria-pressed="false">▶</button>
+    <div class="player-body">
+      <p class="player-title" id="trackName">반짝반짝 작은별</p>
+      <input type="range" id="volRange" min="0" max="100" value="35" aria-label="볼륨">
+    </div>
+    <button type="button" class="player-btn player-btn-sm" id="nextTrack" aria-label="다음 곡">⏭</button>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</div>
+
+<div class="share-root" id="shareRoot" hidden></div>
+
+<script src="js/lunar.js"></script>
+<script src="js/data.js"></script>
+<script src="js/flowers.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
