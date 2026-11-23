@@ -362,7 +362,7 @@
     if (st.mode === 'expecting') {
       var preg = pregnancyOf(st.weekBase, todayISO());
       txt += ' · ' + countdownText(dayDiff(todayISO(), st.target), true);
-      if (preg) txt += ' (' + preg.text + ') 생일을 넣으면 실제 생일 기준으로 바뀝니다.';
+      if (preg) txt += ' (' + preg.text + '). 생일을 넣으면 실제 생일 기준으로 바뀝니다.';
     } else if (st.mode === 'born') {
       var gap = dayDiff(st.birth, due);
       txt += ' · ' + (gap > 0 ? '예정일보다 ' + gap + '일 늦게' : (gap < 0 ? '예정일보다 ' + Math.abs(gap) + '일 일찍' : '예정일에')) + ' 만났어요.';
