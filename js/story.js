@@ -308,7 +308,10 @@
       b.dataset.w = w;
       b.textContent = raw;
       b.setAttribute('aria-label', raw + ' — 뜻 보기');
-      b.addEventListener('click', function () { openWord(b.dataset.w); });
+      b.addEventListener('click', function (ev) {
+        var el = ev.currentTarget || this;
+        if (el && el.dataset) openWord(el.dataset.w);
+      });
       box.appendChild(b);
       last = re.lastIndex;
     }
