@@ -975,7 +975,7 @@ body.modal-open { overflow: hidden; }
   display: flex;
   gap: 8px;
   overflow-x: auto;
-  padding: 2px 2px 6px;
+  padding: 2px 6px 6px 2px;
   margin: -2px -2px 10px;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
@@ -1064,7 +1064,7 @@ body.modal-open { overflow: hidden; }
 .kakao-map {
   position: relative;
   width: 100%;
-  height: clamp(280px, 62vw, 320px);
+  height: clamp(290px, 74vw, 320px);
   background: var(--fill);
 }
 .kakao-map.is-off { display: none; }
@@ -1092,6 +1092,7 @@ body.modal-open { overflow: hidden; }
   font-size: 13px;
   font-weight: 700;
   color: var(--text-sub);
+  margin-top: 14px;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1099,6 +1100,7 @@ body.modal-open { overflow: hidden; }
 }
 .map-reload {
   flex: none;
+  margin-left: auto;
   border: 0;
   background: transparent;
   cursor: pointer;
@@ -1208,8 +1210,8 @@ body.modal-open { overflow: hidden; }
 /* 지도 핀 · 말풍선은 카카오맵 위에 얹히므로 자체 배경을 씁니다 */
 .map-pin {
   position: relative;
-  width: 30px;
-  height: 30px;
+  width: 26px;
+  height: 26px;
   border-radius: 999px 999px 999px 4px;
   transform: rotate(-45deg);
   background: var(--blue, #3182F6);
@@ -1222,7 +1224,7 @@ body.modal-open { overflow: hidden; }
 .map-pin span {
   transform: rotate(45deg);
   color: #fff;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 800;
   line-height: 1;
   letter-spacing: -0.02em;

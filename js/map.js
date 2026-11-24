@@ -13,7 +13,7 @@
   var CATS = {
     pedia:     { label: '소아과',    keyword: '소아과',   code: 'HP8', radius: 3000, empty: '주변 3km 안에 소아과가 없어요. 동네 이름을 넣어 다시 찾아보세요.' },
     pharmacy:  { label: '약국',      keyword: '약국',     code: 'PM9', radius: 2000, empty: '주변 2km 안에 약국이 없어요. 동네 이름을 넣어 다시 찾아보세요.' },
-    emergency: { label: '야간·응급', keyword: '응급실',   code: 'HP8', radius: 8000, empty: '주변에 응급실 정보가 없어요. 동네 이름을 넣어 다시 찾아보세요.' },
+    emergency: { label: '야간·응급', keyword: '응급실',   code: null,  radius: 12000, empty: '주변에 응급실 정보가 없어요. 동네 이름을 넣어 다시 찾아보세요.', medical: true },
     daycare:   { label: '어린이집',  keyword: '어린이집', code: 'PS3', radius: 2000, empty: '주변 2km 안에 어린이집이 없어요. 동네 이름을 넣어 다시 찾아보세요.' }
   };
 
@@ -201,6 +201,7 @@
     var meta = document.createElement('p');
     meta.className = 'map-pop-meta';
     var bits = [shortCategory(place.category_name), fmtDist(place.__dist)];
+    if (place.phone) bits.push(place.phone);
     meta.textContent = bits.filter(Boolean).join(' · ');
 
     var call = document.createElement(place.phone ? 'a' : 'span');
@@ -355,6 +356,7 @@
         meta.className = 'place-meta';
         var bits = [shortCategory(place.category_name)];
         if (place.__dist != null) bits.push(fmtDist(place.__dist));
+        if (place.phone) bits.push(place.phone);
         meta.textContent = bits.filter(Boolean).join(' · ');
 
         info.appendChild(name);
@@ -417,6 +419,13 @@
     return data;
   }
 
+  /* 응급실 검색에는 ‘응급실국물떡보이’ 같은 가게도 쉬여요 — 병원·의료만 남깁니다 */
+  function keepMedical(data) {
+    return data.filter(function (p) {
+      return /병원|의료/.test(String(p.category_name || ''));
+    });
+  }
+
   function apply(data, label) {
     results = data;
     drawMarkers();
@@ -441,14 +450,14 @@
       radius: cat.radius,
       sort: window.kakao.maps.services.SortBy.DISTANCE,
       size: 15,
-      page: 1,
-      category_group_code: cat.code
+      page: 1
     };
+    if (cat.code) options.category_group_code = cat.code;
 
     places.keywordSearch(cat.keyword, function (data, status) {
       if (mySeq !== seq) return;
       if (status === window.kakao.maps.services.Status.OK) {
-        apply(withDistance(data), '');
+        apply(withDistance(cat.medical ? keepMedical(data) : data), '');
         return;
       }
       if (status === window.kakao.maps.services.Status.ZERO_RESULT) {
@@ -456,7 +465,7 @@
         places.keywordSearch(cat.keyword, function (data2, status2) {
           if (mySeq !== seq) return;
           if (status2 === window.kakao.maps.services.Status.OK) {
-            apply(withDistance(data2), '');
+            apply(withDistance(cat.medical ? keepMedical(data2) : data2), '');
           } else {
             results = [];
             clearMarkers();
@@ -490,6 +499,14 @@
     if (!q) { searchCategory(); return; }
     var mySeq = ++seq;
     lastQuery = q;
+    /* 직접 검색할 때는 카테고리 칩을 꺼서 ‘약국’이 켜진 처럼 보이지 않게 합니다 */
+    if (el.chips) {
+      var chips = el.chips.querySelectorAll('.chip');
+      for (var c = 0; c < chips.length; c++) {
+        chips[c].classList.remove('is-on');
+        chips[c].setAttribute('aria-pressed', 'false');
+      }
+    }
     setCount('‘' + q + '’를 찾는 중…');
     if (has(el.list)) {
       el.list.innerHTML = '<div class="place-empty is-busy"><p>‘' + escapeHtml(q) + '’를 찾고 있어요…</p></div>';
