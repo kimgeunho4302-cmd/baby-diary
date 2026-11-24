@@ -314,6 +314,7 @@
     $$('.bottom-item').forEach(function (b) { b.classList.toggle('active', b.dataset.tab === n); });
     if (n === '5') buildInfo();
     if (n === '4') { renderDay(); }
+    if (n === '6' && window.BabyMap) window.BabyMap.enter();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 

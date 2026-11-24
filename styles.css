@@ -970,6 +970,339 @@ body.modal-open { overflow: hidden; }
 }
 .share-note { font-size: 12.5px; color: var(--text-ter); text-align: center; max-width: 460px; line-height: 1.5; }
 
+/* ---------- 6p 병원·약국 ---------- */
+.chip-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 2px 6px;
+  margin: -2px -2px 10px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.chip-row::-webkit-scrollbar { display: none; }
+.chip {
+  flex: none;
+  border: 0;
+  cursor: pointer;
+  padding: 9px 15px;
+  min-height: 40px;
+  border-radius: 999px;
+  background: var(--fill);
+  color: var(--text-sub);
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  transition: background .16s, color .16s;
+}
+.chip:hover { background: var(--line); }
+.chip.is-on { background: var(--blue-tint); color: var(--blue-dark); }
+.chip.is-on:hover { background: #DBEBFF; }
+
+.map-search { display: flex; gap: 8px; margin-bottom: 10px; }
+.map-search input[type="search"] {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  background: var(--fill);
+  border: 0;
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  min-height: 52px;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text);
+  letter-spacing: -0.01em;
+  box-shadow: inset 0 0 0 1.5px transparent;
+  transition: background .16s, box-shadow .16s;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.map-search input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; }
+.map-search input[type="search"]:focus {
+  outline: none;
+  background: #fff;
+  box-shadow: inset 0 0 0 1.8px var(--blue);
+}
+.map-search-btn {
+  flex: none;
+  border: 0;
+  cursor: pointer;
+  min-height: 52px;
+  padding: 0 18px;
+  border-radius: var(--radius-sm);
+  background: var(--blue);
+  color: #fff;
+  font-size: 14.5px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  transition: background .16s;
+}
+.map-search-btn:hover { background: var(--blue-dark); }
+
+.map-locrow { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.map-locrow .btn { flex: none; }
+.map-loc {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-ter);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#mapLocBtn.is-busy { opacity: .6; }
+
+.map-frame {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--fill);
+}
+.kakao-map {
+  position: relative;
+  width: 100%;
+  height: clamp(280px, 62vw, 320px);
+  background: var(--fill);
+}
+.kakao-map.is-off { display: none; }
+.map-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+  padding: 26px 20px;
+}
+.map-fallback-icon { font-size: 26px; line-height: 1; }
+.map-fallback-title { font-size: 15px; font-weight: 700; color: var(--text); letter-spacing: -0.02em; }
+.map-fallback-text { font-size: 13px; color: var(--text-sub); line-height: 1.55; max-width: 300px; }
+.map-fallback .btn { margin-top: 4px; }
+
+.map-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 14px;
+}
+.map-count {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-sub);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.map-reload {
+  flex: none;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 10px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--blue-dark);
+}
+.map-reload:hover { background: var(--blue-tint); }
+
+.map-note {
+  font-size: 12px;
+  color: var(--text-ter);
+  line-height: 1.6;
+  margin: 14px 4px 0;
+}
+.map-note strong { color: var(--text-sub); font-weight: 700; }
+
+/* 결과 목록 — 토스 화이트 카드 */
+.place-list { display: flex; flex-direction: column; gap: 10px; }
+.place-items { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.place {
+  background: var(--card);
+  border-radius: 22px;
+  padding: 16px 18px 18px;
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--line-soft);
+  transition: border-color .16s, box-shadow .16s;
+}
+.place.is-open { border-color: var(--blue); box-shadow: 0 6px 20px rgba(49, 130, 246, .14); }
+.place-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+}
+.place-rank {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  margin-top: 1px;
+  border-radius: 999px;
+  background: var(--blue-tint);
+  color: var(--blue-dark);
+  font-size: 12px;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+}
+.place.is-open .place-rank { background: var(--blue); color: #fff; }
+.place-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.place-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.place-meta { font-size: 12.5px; font-weight: 600; color: var(--text-sub); }
+.place-addr {
+  font-size: 13px;
+  color: var(--text-sub);
+  line-height: 1.5;
+  margin: 9px 0 0 35px;
+  overflow-wrap: anywhere;
+}
+.place-actions { display: flex; gap: 8px; margin: 13px 0 0 35px; flex-wrap: wrap; }
+.place-act {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 12px;
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+  border: 0;
+}
+.place-act-call { background: var(--blue-tint); color: var(--blue-dark); }
+.place-act-call:hover { background: #DBEBFF; }
+.place-act-go { background: var(--fill); color: var(--text-strong); }
+.place-act-go:hover { background: var(--line); }
+.place-act.is-off { background: var(--fill); color: var(--text-ter); font-weight: 600; }
+
+.place-empty {
+  background: var(--card);
+  border-radius: 22px;
+  padding: 26px 20px;
+  text-align: center;
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--line-soft);
+}
+.place-empty p { font-size: 13.5px; color: var(--text-sub); line-height: 1.6; margin: 0 auto; max-width: 320px; }
+.place-empty .btn { margin-top: 12px; }
+.place-empty.is-busy p { color: var(--text-ter); }
+
+/* 지도 핀 · 말풍선은 카카오맵 위에 얹히므로 자체 배경을 씁니다 */
+.map-pin {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px 999px 999px 4px;
+  transform: rotate(-45deg);
+  background: var(--blue, #3182F6);
+  box-shadow: 0 2px 6px rgba(23, 31, 40, .28), 0 0 0 2px #fff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: transform .12s, background .16s;
+}
+.map-pin span {
+  transform: rotate(45deg);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.map-pin:hover { transform: rotate(-45deg) scale(1.08); }
+.map-pin:focus-visible { outline: 2px solid #1B64DA; outline-offset: 2px; }
+
+.map-pop {
+  position: relative;
+  background: #fff;
+  border-radius: 16px;
+  padding: 12px 14px 13px;
+  min-width: 168px;
+  max-width: 240px;
+  box-shadow: 0 10px 26px rgba(23, 31, 40, .22);
+  border: 1px solid #E5E8EB;
+  font-family: var(--font);
+}
+.map-pop::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -7px;
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  background: #fff;
+  border-right: 1px solid #E5E8EB;
+  border-bottom: 1px solid #E5E8EB;
+  transform: rotate(45deg);
+}
+.map-pop-close {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #8B95A1;
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+}
+.map-pop-close:hover { background: #F2F4F6; color: #333D4B; }
+.map-pop-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #191F28;
+  letter-spacing: -0.02em;
+  padding-right: 20px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.map-pop-meta { font-size: 12px; font-weight: 600; color: #6B7684; margin-top: 3px; }
+.map-pop-row { display: flex; gap: 6px; margin-top: 9px; }
+.map-pop-btn {
+  flex: 1 1 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 0 8px;
+  border-radius: 10px;
+  background: #E8F3FF;
+  color: #1B64DA;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.map-pop-btn:last-child { background: #F2F4F6; color: #333D4B; }
+.map-pop-btn.is-off { background: #F2F4F6; color: #8B95A1; font-weight: 600; }
+
+@media (min-width: 620px) {
+  .kakao-map { height: 320px; }
+  .place-items { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
 /* ---------- 반응형 ---------- */
 @media (min-width: 480px) {
   .field-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -1045,4 +1378,16 @@ body.modal-open { overflow: hidden; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+
+/* ---------- 하단 탭 6개(병원·약국) — 좁은 화면에서도 가로 넘침 없이 ---------- */
+@media (max-width: 619px) {
+  .bottomnav { gap: 0; padding: 8px 4px; }
+  .bottom-item { gap: 2px; padding: 6px 1px; font-size: 10.5px; letter-spacing: -0.03em; }
+  .bottom-item span { font-size: 18px; }
+}
+@media (max-width: 359px) {
+  .bottomnav { left: 8px; right: 8px; padding: 8px 2px; }
+  .bottom-item { font-size: 9.5px; letter-spacing: -0.04em; }
+  .bottom-item span { font-size: 17px; }
 }
