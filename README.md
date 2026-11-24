@@ -46,14 +46,17 @@ git push origin main:gh-pages
 
 > 아이폰: Safari에서 주소를 연 뒤 **공유 → 홈 화면에 추가** 하면 standalone 앱처럼 실행됩니다.
 > 새 버전을 올렸는데 화면이 그대로면, 앱을 완전히 닫았다가 다시 열면 서비스워커가 갱신됩니다.
-> `sw.js` 의 `CACHE` 이름(`baby-diary-toss-v5`)을 올리면 강제로 새 캐시를 씁니다.
+> `sw.js` 의 `CACHE` 이름(`baby-diary-toss-v6`)을 올리면 강제로 새 캐시를 씁니다.
 
 ## 동화책 (7p)
 
-- 동화 4편은 `js/story.js` 안에 글·그림(이모지)·단어 사전이 함께 들어 있어 **인터넷이 없어도** 읽고 뜻을 볼 수 있습니다.
+- 책 제목 줄을 누르면 **책 고르기 시트**가 열립니다. 분류 알약(전체·동물·생활습관·잠자리·자연·계절·숫자·색깔·탈것)과 제목 검색(한글·영어)으로 50권 중에서 고르고, 2열 책장에서 바로 펼칩니다.
+- 동화 목록은 **Supabase** `public.stories` 표에서 받아 옵니다(`js/supabase-config.js` 의 URL·공개키). 받은 목록은 `localStorage['babyDiary.storiesCache.v1']` 에 저장되어 **인터넷이 없어도 50권을 그대로** 읽을 수 있습니다.
+- 표가 아직 없거나(PGRST205) 오프라인이면 `js/story.js` 안의 **내장 동화 4편**으로 자동 전환하고, 화면에 이유와 **[다시 시도]** 버튼을 보여 줍니다. 10분이 지나거나 인터넷이 다시 붙으면 새 목록을 확인합니다.
+- 50편 동화와 시드 SQL은 `baby-diary-stories-50/` 폴더에서 관리합니다. Supabase SQL Editor에 `supabase-stories-seed.sql` 을 붙여 넣고 Run 하면 50권이 나타납니다(여러 번 실행해도 안전).
+- 영어 단어 뜻·발음 기호는 `js/story-vocab.js`(532단어)에 들어 있어 **인터넷 없이도** 모든 낱말이 뜹니다. 사전에 없는 낱말만 `api.dictionaryapi.dev` 에서 발음 기호·원어민 음성을 더해 옵니다.
 - 읽어주기는 브라우저 **Web Speech API**(`ko-KR`·`en-US`)를 씁니다. 지원하지 않는 브라우저에서는 한국어 안내 문구가 뜨고 글은 그대로 볼 수 있습니다.
-- 영어 단어를 누르면 **내장 뜻**이 먼저 보이고, 인터넷이 되면 `api.dictionaryapi.dev` 에서 **발음 기호와 원어민 음성**을 더해 줍니다. 못 불러오면 기기 음성으로 발음합니다.
-- 담은 단어는 `localStorage` 의 `babyDiary.vocab.v1` 에만 저장되며(서버 전송 없음), 2개 이상이면 단어장 안에서 퀴즈가 나옵니다.
+- 담은 단어는 `localStorage` 의 `babyDiary.vocab.v1` 에만 저장되며(서버 전송 없음), 2개 이상이면 단어장 안에서 퀴즈가 나옵니다. 마지막에 보던 책·쪽은 `babyDiary.storyLast.v1` 에 기억합니다.
 
 ## 병원·약국 지도 (6p)
 
@@ -89,6 +92,9 @@ js/lunar.js         KARI 음력 데이터 + 양력↔음력 변환
 js/data.js          별자리·탄생석·띠·월별 탄생화·태그/기분
 js/flowers.js       366일 탄생화와 꽃말
 js/map.js           카카오 지도 SDK 로딩·주변 소아과/약국 검색·지도 핀
+js/story.js         동화책 — Supabase 목록·캐시·책장·읽어주기·단어 카드·단어장
+js/story-vocab.js   동화 50편 영어 단어 사전(532개, IPA·뜻·품사)
+js/supabase-config.js  Supabase URL·공개키(동화 목록)
 js/app.js           상태 저장·일기·공유·카드 PNG·오르골·PWA 등록
 manifest.json       PWA 매니페스트
 sw.js               오프라인 캐시 서비스워커
