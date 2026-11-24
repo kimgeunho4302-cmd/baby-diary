@@ -9,13 +9,13 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="육아일기">
-<link rel="manifest" href="manifest.json?v=4">
+<link rel="manifest" href="manifest.json?v=5">
 <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-<link rel="stylesheet" href="styles.css?v=4">
+<link rel="stylesheet" href="styles.css?v=5">
 <link rel="preconnect" href="https://dapi.kakao.com" crossorigin>
-<script src="js/theme.js?v=4"></script>
+<script src="js/theme.js?v=5"></script>
 </head>
 <body>
 <div class="app" id="app">
@@ -474,7 +474,19 @@
       </div>
 
       <article class="card story-card">
-        <div class="story-picker" id="storyPicker" role="group" aria-label="동화 고르기"></div>
+        <button type="button" class="story-bookbar" id="storyShelfBtn" aria-haspopup="dialog" aria-controls="storyShelf">
+          <span class="bb-cover" id="storyNowEmoji" aria-hidden="true">🐰</span>
+          <span class="bb-now">
+            <span class="bb-title" id="storyNowTitle">아기 토끼의 아침</span>
+            <span class="bb-meta" id="storyNowMeta">동물 · 0~2세 · 1/5</span>
+          </span>
+          <span class="bb-open">📚 <span id="storyNowCount">4권</span> <span aria-hidden="true">›</span></span>
+        </button>
+
+        <div class="story-status" id="storyStatus" hidden>
+          <span id="storyStatusText"></span>
+          <button type="button" class="story-retry" id="storyRetry" hidden>다시 시도</button>
+        </div>
 
         <div class="story-lang" id="storyLang" role="group" aria-label="보여 줄 언어">
           <button type="button" class="is-on" data-lang="both" aria-pressed="true">한영 함께</button>
@@ -504,7 +516,7 @@
           <p class="story-count" id="storyCount">1 / 5</p>
         </div>
 
-        <p class="story-hint">영어 문장의 단어를 누르면 뜻·발음 카드가 열려요.</p>
+        <p class="story-hint">영어 문장의 단어를 누르면 뜻·발음 카드가 열려요. 위의 책 제목을 누르면 다른 동화를 고를 수 있어요.</p>
       </article>
 
       <article class="card vocab-card">
@@ -521,6 +533,29 @@
           <button type="button" class="sbtn quiz-new" id="quizNew" hidden>새 문제 내기</button>
         </div>
       </article>
+
+      <div class="shelf" id="storyShelf" hidden>
+        <div class="shelf-dim" id="storyShelfDim"></div>
+        <div class="shelf-card" role="dialog" aria-modal="true" aria-labelledby="shelfTitle">
+          <div class="word-sheet-grip" aria-hidden="true"></div>
+          <div class="shelf-head">
+            <h3 class="shelf-title" id="shelfTitle">동화 고르기</h3>
+            <button type="button" class="word-sheet-close" id="storyShelfClose">닫기</button>
+          </div>
+          <label class="shelf-search">
+            <span aria-hidden="true">🔍</span>
+            <input type="search" id="storySearch" placeholder="제목으로 찾기 (한글·영어)" autocomplete="off" enterkeyhint="search" aria-label="동화 제목으로 찾기">
+          </label>
+          <div class="shelf-cats" id="storyCats" role="group" aria-label="동화 분류"></div>
+          <div class="shelf-top">
+            <p class="shelf-count" id="storyShelfCount">전체 4권</p>
+            <p class="shelf-total">제목을 누르면 바로 펼쳐져요</p>
+          </div>
+          <div class="shelf-grid" id="storyShelfGrid"></div>
+          <p class="shelf-empty" id="storyShelfEmpty" hidden>찾는 동화가 없어요. 다른 낱말로 찾아보세요.</p>
+          <p class="shelf-note">동화를 누르면 바로 펼쳐져요. 받아 온 동화는 이 기기에 저장되어 인터넷이 없어도 읽을 수 있어요.</p>
+        </div>
+      </div>
 
       <div class="word-sheet" id="wordSheet" hidden>
         <div class="word-sheet-dim" id="wordSheetDim"></div>
@@ -584,11 +619,13 @@
   </div>
 </div>
 
-<script src="js/lunar.js?v=4"></script>
-<script src="js/data.js?v=4"></script>
-<script src="js/flowers.js?v=4"></script>
-<script src="js/app.js?v=4"></script>
-<script src="js/map.js?v=4"></script>
-<script src="js/story.js?v=4"></script>
+<script src="js/lunar.js?v=5"></script>
+<script src="js/data.js?v=5"></script>
+<script src="js/flowers.js?v=5"></script>
+<script src="js/app.js?v=5"></script>
+<script src="js/map.js?v=5"></script>
+<script src="js/story-vocab.js?v=5"></script>
+<script src="js/supabase-config.js?v=5"></script>
+<script src="js/story.js?v=5"></script>
 </body>
 </html>
