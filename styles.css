@@ -1480,8 +1480,8 @@ body.modal-open { overflow: hidden; }
   display: inline; border: 0; background: transparent; padding: 0; margin: 0;
   font: inherit; color: inherit; line-height: inherit; text-align: inherit;
   cursor: pointer; border-radius: 6px;
-  text-decoration: underline dotted var(--line); text-underline-offset: 4px;
-  -webkit-text-decoration: underline dotted var(--line); -webkit-text-underline-offset: 4px;
+  text-decoration: underline dotted rgba(107, 118, 132, .48); text-underline-offset: 4px;
+  -webkit-text-decoration: underline dotted rgba(107, 118, 132, .48); -webkit-text-underline-offset: 4px;
   box-decoration-break: clone; -webkit-box-decoration-break: clone;
   transition: background .14s, color .14s, box-shadow .14s;
 }
