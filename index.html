@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>우리 아기 육아일기 · Baby Diary</title>
-<meta name="theme-color" content="#FFF4EA">
+<meta name="theme-color" content="#F2F4F6">
 <meta name="description" content="엄마·아빠가 함께 쓰는 우리 아기 육아일기. 음력 생일, 백일·첫돌, 탄생화까지 한 번에.">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -12,24 +12,32 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <link rel="stylesheet" href="styles.css">
+<script src="js/theme.js"></script>
 </head>
 <body>
 <div class="app" id="app">
 
   <header class="appbar">
-    <div class="brand">
-      <span class="brand-mark" aria-hidden="true">🍼</span>
-      <div class="brand-text">
-        <h1 class="brand-title">우리 아기 육아일기</h1>
-        <p class="brand-sub" id="brandSub">아이 정보를 등록해 주세요</p>
+    <div class="appbar-top">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">🍼</span>
+        <h1 class="brand-title">육아일기</h1>
+      </div>
+      <div class="theme-switch" id="themeSwitch" role="group" aria-label="배경 테마">
+        <button type="button" class="theme-swatch" data-theme-set="gray" aria-pressed="true" aria-label="토스 그레이 테마" title="토스 그레이"></button>
+        <button type="button" class="theme-swatch" data-theme-set="cream" aria-pressed="false" aria-label="따뜻한 크림 테마" title="따뜻한 크림"></button>
+        <button type="button" class="theme-swatch" data-theme-set="lavender" aria-pressed="false" aria-label="소프트 라벤더 테마" title="소프트 라벤더"></button>
+        <button type="button" class="theme-swatch" data-theme-set="mint" aria-pressed="false" aria-label="민트 브리즈 테마" title="민트 브리즈"></button>
       </div>
     </div>
+    <p class="brand-sub" id="brandSub">아이 정보를 등록해 주세요</p>
     <nav class="tabs" id="tabs" aria-label="페이지 이동">
-      <button type="button" class="tab" data-tab="1">가족 소개</button>
+      <button type="button" class="tab" data-tab="1">가족</button>
       <button type="button" class="tab" data-tab="2">첫 만남</button>
-      <button type="button" class="tab" data-tab="3">탄생 기록</button>
-      <button type="button" class="tab" data-tab="4">오늘의 일기</button>
+      <button type="button" class="tab" data-tab="3">탄생</button>
+      <button type="button" class="tab" data-tab="4">일기</button>
       <button type="button" class="tab" data-tab="5">아기 정보</button>
     </nav>
   </header>
@@ -40,15 +48,18 @@
     <section class="page" id="page-1" data-page="1" aria-label="가족 소개">
       <div class="onboard" id="onboard" hidden>
         <span class="onboard-emoji" aria-hidden="true">🌱</span>
-        <p>아직 아이 정보가 없어요. <strong>아기 이름</strong>과 <strong>생일 또는 출산 예정일</strong>만 넣으면 오늘의 일기를 바로 쓸 수 있어요.</p>
+        <div class="onboard-body">
+          <p class="onboard-title">먼저 아이 정보를 등록해 주세요</p>
+          <p>아기 <strong>이름</strong>과 <strong>생일 또는 출산 예정일</strong>만 넣으면 오늘의 일기를 바로 쓸 수 있어요.</p>
+        </div>
       </div>
 
       <article class="card">
         <div class="card-head">
-          <h2 class="card-title">가족 소개</h2>
+          <h2 class="card-title">우리 가족</h2>
           <span class="step">1p</span>
         </div>
-        <p class="card-desc">엄마·아빠와 아기의 이름을 적어 주세요. 아기 이름과 생일(또는 출산 예정일)은 일기와 아기 정보 페이지에 함께 쓰여요.</p>
+        <p class="card-desc">엄마·아빠와 아기의 이름을 적어 주세요. 아기 이름과 생일(또는 예정일)은 일기와 아기 정보에 함께 쓰여요.</p>
 
         <div class="field-grid">
           <label class="field" for="momName">
@@ -94,7 +105,7 @@
         </label>
         <p class="hint" id="dueHint">예정일만 있어도 저장되고, 만남까지 남은 날과 임신 주수를 함께 보여드려요.</p>
 
-        <div class="field-grid">
+        <div class="field-grid field-grid-2">
           <label class="field" for="momBirth">
             <span class="field-label">엄마 생일 <span class="opt">선택</span></span>
             <input id="momBirth" type="date" min="1900-01-31" max="2050-12-31">
@@ -106,10 +117,37 @@
         </div>
 
         <div class="form-actions">
-          <button type="button" class="btn btn-primary" id="saveFamily">저장하기</button>
-          <button type="button" class="btn btn-ghost" id="goDiary">오늘의 일기로</button>
+          <button type="button" class="btn btn-primary btn-block" id="saveFamily">저장하기</button>
+          <button type="button" class="btn btn-ghost btn-block" id="goDiary">오늘의 일기로</button>
           <span class="save-hint" id="familyHint"></span>
         </div>
+      </article>
+
+      <article class="card">
+        <div class="card-head">
+          <h2 class="card-title">배경 테마</h2>
+          <span class="step">테마</span>
+        </div>
+        <p class="card-desc">마음에 드는 색을 고르면 화면 전체에 바로 적용돼요. 고른 테마는 이 기기에 저장되어 다음에 열어도 그대로예요.</p>
+        <div class="theme-grid" id="themeGrid" role="group" aria-label="배경 테마 고르기">
+          <button type="button" class="theme-opt" data-theme-set="gray" aria-pressed="true">
+            <span class="theme-chip" aria-hidden="true"></span>
+            <span class="theme-name">토스 그레이</span>
+          </button>
+          <button type="button" class="theme-opt" data-theme-set="cream" aria-pressed="false">
+            <span class="theme-chip" aria-hidden="true"></span>
+            <span class="theme-name">따뜻한 크림</span>
+          </button>
+          <button type="button" class="theme-opt" data-theme-set="lavender" aria-pressed="false">
+            <span class="theme-chip" aria-hidden="true"></span>
+            <span class="theme-name">소프트 라벤더</span>
+          </button>
+          <button type="button" class="theme-opt" data-theme-set="mint" aria-pressed="false">
+            <span class="theme-chip" aria-hidden="true"></span>
+            <span class="theme-name">민트 브리즈</span>
+          </button>
+        </div>
+        <p class="hint">위쪽 제목 옆 동그란 색 버튼으로도 어느 화면에서든 한 번에 바꿀 수 있어요.</p>
       </article>
 
       <article class="card">
@@ -117,20 +155,20 @@
           <h2 class="card-title">백업과 옮기기</h2>
           <span class="step">백업</span>
         </div>
-        <p class="card-desc">엄마 폰과 아빠 폰에서 따로 쓰고 있다면 서로 기록을 합칠 수 있어요. 아래 ① 텍스트 복사·붙여넣기나 ② 파일 저장·불러오기 중 편한 방법을 쓰세요.</p>
+        <p class="card-desc">엄마 폰과 아빠 폰에서 따로 쓰고 있다면 서로 기록을 합칠 수 있어요. ① 텍스트 복사·붙여넣기나 ② 파일 저장·불러오기 중 편한 방법을 쓰세요.</p>
 
         <div class="backup-block">
           <p class="backup-step"><span class="num">1</span> 백업 텍스트 복사 → 붙여넣기</p>
           <p class="hint">복사한 글을 카톡 ‘나에게 보내기’, 메모, 메일 어디에든 붙여넣어 두면 돼요. 안드로이드·아이폰 모두 확실하게 동작합니다.</p>
           <div class="form-actions">
-            <button type="button" class="btn btn-primary btn-sm" id="copyBackupBtn">백업 텍스트 복사</button>
-            <button type="button" class="btn btn-soft btn-sm" id="pasteMergeBtn">붙여넣기로 합치기</button>
+            <button type="button" class="btn btn-soft btn-sm" id="copyBackupBtn">백업 텍스트 복사</button>
+            <button type="button" class="btn btn-ghost btn-sm" id="pasteMergeBtn">붙여넣기로 합치기</button>
           </div>
         </div>
 
         <div class="backup-block">
           <p class="backup-step"><span class="num">2</span> 파일로 저장하거나 보내기</p>
-          <p class="hint">공유 시트가 열리면 카톡·메일로 바로 보낼 수 있어요. 저장되는 파일 이름은 <strong>baby-diary-backup-날짜.txt</strong>이고, 내용은 같은 백업 데이터입니다.</p>
+          <p class="hint">공유 시트가 열리면 카톡·메일로 바로 보낼 수 있어요. 파일 이름은 <strong>baby-diary-backup-날짜.txt</strong>이고, 내용은 같은 백업 데이터입니다.</p>
           <div class="form-actions">
             <button type="button" class="btn btn-soft btn-sm" id="shareBackupBtn">파일로 저장·공유</button>
             <button type="button" class="btn btn-ghost btn-sm" id="importBtn">파일 불러오기</button>
@@ -138,7 +176,7 @@
           </div>
         </div>
 
-        <div class="backup-block">
+        <div class="backup-block backup-block-danger">
           <p class="backup-step"><span class="num">3</span> 처음부터 다시 시작하기</p>
           <div class="form-actions">
             <button type="button" class="btn btn-danger-ghost btn-sm" id="resetBtn">전체 삭제</button>
@@ -158,7 +196,7 @@
 
       <article class="card">
         <div class="card-head">
-          <h3 class="card-title">① 엄마·아빠의 첫 만남</h3>
+          <h3 class="card-title">엄마·아빠의 첫 만남</h3>
           <span class="step">2p</span>
         </div>
         <div class="photo-field">
@@ -184,7 +222,7 @@
 
       <article class="card">
         <div class="card-head">
-          <h3 class="card-title">② 아기와의 첫 만남</h3>
+          <h3 class="card-title">아기와의 첫 만남</h3>
           <span class="step">2p</span>
         </div>
         <div class="photo-field">
@@ -219,7 +257,7 @@
       <article class="card">
         <div class="photo-field">
           <input type="file" accept="image/*" id="birthPhoto" class="file-input" hidden>
-          <button type="button" class="photo-drop" id="birthDrop">
+          <button type="button" class="photo-drop photo-drop-tall" id="birthDrop">
             <span class="photo-icon" aria-hidden="true">📷</span>
             <span class="photo-drop-text">출생 사진 추가</span>
           </button>
@@ -229,7 +267,7 @@
           </div>
         </div>
 
-        <div class="field-grid">
+        <div class="field-grid field-grid-2">
           <label class="field" for="birthPlace">
             <span class="field-label">태어난 곳</span>
             <input id="birthPlace" type="text" maxlength="60" placeholder="예: 서울성모병원">
@@ -266,19 +304,22 @@
     <section class="page" id="page-4" data-page="4" aria-label="오늘의 일기">
       <div class="onboard" id="diaryOnboard" hidden>
         <span class="onboard-emoji" aria-hidden="true">🌱</span>
-        <p>먼저 <strong>아기 이름</strong>과 <strong>생일 또는 출산 예정일</strong>을 등록하면 생후 일수와 만남까지 남은 날이 함께 보여요.</p>
-        <button type="button" class="btn btn-ghost btn-sm" id="goFamily">가족 소개로</button>
+        <div class="onboard-body">
+          <p class="onboard-title">아이 정보를 먼저 등록해 주세요</p>
+          <p><strong>아기 이름</strong>과 <strong>생일 또는 출산 예정일</strong>을 등록하면 생후 일수와 만남까지 남은 날이 함께 보여요.</p>
+        </div>
+        <button type="button" class="btn btn-soft btn-sm" id="goFamily">등록하기</button>
       </div>
 
-      <div class="daybar card">
+      <div class="daybar" id="daybar">
         <div class="daybar-nav">
           <button type="button" class="nav-arrow" id="prevDay" aria-label="이전 날">‹</button>
           <div class="daybar-center">
             <p class="daybar-date" id="dateLabel">오늘</p>
-            <p class="daybar-sub" id="dateSub">태어난 지 +0일</p>
           </div>
           <button type="button" class="nav-arrow" id="nextDay" aria-label="다음 날">›</button>
         </div>
+        <p class="daybar-sub" id="dateSub">태어난 지 +0일</p>
         <div class="daybar-row">
           <button type="button" class="btn btn-ghost btn-sm" id="todayBtn">오늘</button>
           <label class="daypicker" for="dayPicker">
@@ -292,6 +333,10 @@
 
       <div class="diary-layout">
         <article class="card entry-form" id="entryForm">
+          <div class="card-head">
+            <h3 class="card-title">기록 쓰기</h3>
+          </div>
+
           <div class="author-switch" role="group" aria-label="작성자 선택">
             <button type="button" class="author-btn active" data-author="mom" id="authorMom">👩 엄마</button>
             <button type="button" class="author-btn" data-author="dad" id="authorDad">👨 아빠</button>
@@ -314,7 +359,7 @@
             </div>
           </div>
 
-          <div class="field-grid">
+          <div class="field-grid field-grid-2">
             <label class="field" for="entryMood">
               <span class="field-label">기분·컨디션</span>
               <select id="entryMood">
@@ -325,7 +370,7 @@
               <span class="field-label">수유 메모 <span class="opt">선택</span></span>
               <input id="feedMemo" type="text" maxlength="60" placeholder="예: 분유 120ml ×4">
             </label>
-            <label class="field" for="sleepMemo">
+            <label class="field field-wide" for="sleepMemo">
               <span class="field-label">수면 메모 <span class="opt">선택</span></span>
               <input id="sleepMemo" type="text" maxlength="60" placeholder="예: 낮잠 2시간">
             </label>
@@ -336,9 +381,9 @@
             <div class="tag-row" id="tagRow"></div>
           </div>
 
-          <div class="form-actions">
-            <button type="button" class="btn btn-primary" id="saveEntry">기록 저장</button>
-            <button type="button" class="btn btn-ghost" id="cancelEdit" hidden>수정 취소</button>
+          <div class="form-actions form-actions-stack">
+            <button type="button" class="btn btn-primary btn-block" id="saveEntry">기록 저장</button>
+            <button type="button" class="btn btn-ghost btn-block" id="cancelEdit" hidden>수정 취소</button>
             <span class="save-hint" id="entryHint">저장한 기록은 이 기기에 남아요.</span>
           </div>
         </article>
@@ -347,8 +392,8 @@
           <div class="entries-head">
             <h3 class="entries-title">이 날의 기록</h3>
             <div class="share-actions">
-              <button type="button" class="btn btn-soft btn-sm" id="shareBtn">이 날 일기 공유</button>
-              <button type="button" class="btn btn-soft btn-sm" id="cardBtn">카드로 저장 (PNG)</button>
+              <button type="button" class="btn btn-ghost btn-sm" id="shareBtn">일기 공유</button>
+              <button type="button" class="btn btn-ghost btn-sm" id="cardBtn">카드 저장</button>
             </div>
           </div>
           <div class="entry-list" id="entryList"></div>
@@ -358,7 +403,8 @@
 
     <!-- 5p 아기 정보 -->
     <section class="page" id="page-5" data-page="5" aria-label="아기 정보">
-      <div class="info-hero card">
+      <div class="info-hero">
+        <p class="info-hero-eyebrow">우리 아기</p>
         <p class="info-hero-name" id="infoName">아기 이름</p>
         <p class="info-hero-birth" id="infoBirth">생일을 등록해 주세요</p>
         <p class="info-hero-lunar" id="infoLunar"></p>
@@ -399,6 +445,7 @@
 
 <div class="modal" id="pasteModal" role="dialog" aria-modal="true" aria-labelledby="pasteTitle" hidden>
   <div class="modal-card">
+    <div class="modal-grip" aria-hidden="true"></div>
     <div class="modal-head">
       <h3 class="modal-title" id="pasteTitle">붙여넣기로 합치기</h3>
       <button type="button" class="modal-close" id="pasteClose">닫기</button>
@@ -406,8 +453,8 @@
     <p class="modal-desc">다른 폰에서 <strong>백업 텍스트 복사</strong>로 복사해 둔 글을 아래에 붙여넣고 <strong>합치기</strong>를 눌러 주세요. 기존 기록은 그대로 두고 없는 기록만 더합니다.</p>
     <textarea id="pasteArea" rows="8" placeholder="복사한 백업 텍스트를 여기에 붙여넣으세요"></textarea>
     <div class="modal-actions">
-      <button type="button" class="btn btn-primary" id="pasteMergeConfirm">합치기</button>
-      <button type="button" class="btn btn-ghost" id="pasteCancel">취소</button>
+      <button type="button" class="btn btn-primary btn-block" id="pasteMergeConfirm">합치기</button>
+      <button type="button" class="btn btn-ghost btn-block" id="pasteCancel">취소</button>
     </div>
   </div>
 </div>

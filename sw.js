@@ -1,5 +1,5 @@
 /* 우리 아기 육아일기 — 오프라인 캐시 서비스워커 */
-const CACHE = 'baby-diary-v2';
+const CACHE = 'baby-diary-toss-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -9,6 +9,7 @@ const ASSETS = [
   './js/data.js',
   './js/flowers.js',
   './js/app.js',
+  './js/theme.js',
   './icons/icon-192.png',
   './icons/apple-touch-icon.png',
   './icons/icon-512.png',

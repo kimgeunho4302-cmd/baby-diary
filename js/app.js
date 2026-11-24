@@ -1053,33 +1053,33 @@
     var canvas = document.createElement('canvas');
     canvas.width = W; canvas.height = H;
     var ctx = canvas.getContext('2d');
-    var FONT = '"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+    var FONT = '"Pretendard Variable",Pretendard,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif';
 
     // 배경
-    ctx.fillStyle = '#FFF8F0';
+    ctx.fillStyle = '#F2F4F6';
     ctx.fillRect(0, 0, W, H);
     var g1 = ctx.createRadialGradient(120, 40, 30, 120, 40, 720);
-    g1.addColorStop(0, 'rgba(255, 222, 197, 0.9)');
-    g1.addColorStop(1, 'rgba(255, 222, 197, 0)');
+    g1.addColorStop(0, 'rgba(49, 130, 246, 0.16)');
+    g1.addColorStop(1, 'rgba(49, 130, 246, 0)');
     ctx.fillStyle = g1; ctx.fillRect(0, 0, W, H);
     var g2 = ctx.createRadialGradient(1000, 1260, 40, 1000, 1260, 640);
-    g2.addColorStop(0, 'rgba(206, 226, 203, 0.85)');
-    g2.addColorStop(1, 'rgba(206, 226, 203, 0)');
+    g2.addColorStop(0, 'rgba(18, 183, 106, 0.12)');
+    g2.addColorStop(1, 'rgba(18, 183, 106, 0)');
     ctx.fillStyle = g2; ctx.fillRect(0, 0, W, H);
 
     // 종이 카드
     ctx.save();
-    ctx.shadowColor = 'rgba(170, 130, 100, 0.20)';
+    ctx.shadowColor = 'rgba(23, 31, 40, 0.12)';
     ctx.shadowBlur = 36;
     ctx.shadowOffsetY = 14;
-    ctx.fillStyle = '#FFFDF9';
+    ctx.fillStyle = '#FFFFFF';
     roundRect(ctx, M, M, W - M * 2, H - M * 2, 42);
     ctx.fill();
     ctx.restore();
     ctx.save();
     roundRect(ctx, M, M, W - M * 2, H - M * 2, 42);
     ctx.clip();
-    ctx.fillStyle = 'rgba(241, 227, 215, 0.55)';
+    ctx.fillStyle = 'rgba(229, 232, 235, 0.75)';
     for (var px = M + 14; px < W - M; px += 26) {
       for (var py = M + 14; py < H - M; py += 26) {
         ctx.beginPath();
@@ -1088,7 +1088,7 @@
       }
     }
     ctx.restore();
-    ctx.strokeStyle = '#EFDCCB';
+    ctx.strokeStyle = '#E5E8EB';
     ctx.lineWidth = 2;
     roundRect(ctx, M, M, W - M * 2, H - M * 2, 42);
     ctx.stroke();
@@ -1098,21 +1098,21 @@
 
     // 헤더
     ctx.textAlign = 'center';
-    ctx.fillStyle = '#EFA57C';
+    ctx.fillStyle = '#3182F6';
     ctx.font = '600 26px ' + FONT;
     ctx.fillText('✿   ✿   ✿', cx, 150);
 
-    ctx.fillStyle = '#86756A';
+    ctx.fillStyle = '#6B7684';
     ctx.font = '700 29px ' + FONT;
     ctx.fillText((state.family.baby || '우리 아기') + '의 하루', cx, 212);
 
-    ctx.fillStyle = '#4A3B33';
+    ctx.fillStyle = '#191F28';
     ctx.font = '800 46px ' + FONT;
     ctx.fillText(fmtKoreanDate(date), cx, 282);
 
     var y = 282;
     if (sol) {
-      ctx.fillStyle = '#7C9C78';
+      ctx.fillStyle = '#1B64DA';
       ctx.font = '700 25px ' + FONT;
       ctx.fillText('태어난 지 +' + Math.max(0, dayDiff(sol, date)) + '일', cx, 326);
       y = 326;
@@ -1120,7 +1120,7 @@
 
     // 점선 구분선
     ctx.save();
-    ctx.strokeStyle = '#EFDCCB';
+    ctx.strokeStyle = '#DDE1E6';
     ctx.lineWidth = 3;
     ctx.setLineDash([9, 11]);
     ctx.beginPath();
@@ -1139,11 +1139,11 @@
     var pending = photoEntry ? loadImage(photoEntry.photo) : Promise.resolve(null);
     pending.then(function (img) {
       if (img && img.naturalWidth) {
-        ctx.fillStyle = '#F7EFE7';
+        ctx.fillStyle = '#F2F4F6';
         roundRect(ctx, left, photoTop, maxW, photoH, 26);
         ctx.fill();
         drawCover(ctx, img, left, photoTop, maxW, photoH, 26);
-        ctx.strokeStyle = '#F0E2D6';
+        ctx.strokeStyle = '#E5E8EB';
         ctx.lineWidth = 2;
         roundRect(ctx, left, photoTop, maxW, photoH, 26);
         ctx.stroke();
@@ -1157,24 +1157,24 @@
         ctx.font = '800 25px ' + FONT;
         var nameW = ctx.measureText(authorName).width;
         var chipW = nameW + 66;
-        ctx.fillStyle = entry.author === 'dad' ? '#EFF6FB' : '#FFF0E4';
+        ctx.fillStyle = entry.author === 'dad' ? '#E8F3FF' : '#FFF0F3';
         roundRect(ctx, left, y - 32, chipW, 50, 25);
         ctx.fill();
         ctx.beginPath();
-        ctx.fillStyle = entry.author === 'dad' ? '#7FA6C2' : '#EFA57C';
+        ctx.fillStyle = entry.author === 'dad' ? '#3182F6' : '#D6436A';
         ctx.arc(left + 26, y - 7, 8, 0, Math.PI * 2);
         ctx.fill();
-        ctx.fillStyle = entry.author === 'dad' ? '#4E7C9B' : '#B9713F';
+        ctx.fillStyle = entry.author === 'dad' ? '#1B64DA' : '#C43A5E';
         ctx.fillText(authorName, left + 44, y + 1);
 
         if (entry.time) {
           ctx.font = '600 22px ' + FONT;
-          ctx.fillStyle = '#B3A398';
+          ctx.fillStyle = '#8B95A1';
           ctx.fillText(entry.time, left + chipW + 16, y + 1);
         }
         y += 52;
 
-        ctx.fillStyle = '#4A3B33';
+        ctx.fillStyle = '#333D4B';
         ctx.font = '400 31px ' + FONT;
         var lines = wrapLines(ctx, entry.text || '', maxW);
         var maxLines = Math.max(1, Math.floor((footY - y - 10) / 50));
@@ -1186,7 +1186,7 @@
         });
 
         if (entry.mood && MOODS[entry.mood]) {
-          ctx.fillStyle = '#86756A';
+          ctx.fillStyle = '#6B7684';
           ctx.font = '600 23px ' + FONT;
           ctx.fillText(MOODS[entry.mood].emoji + ' ' + MOODS[entry.mood].label, left, y + 8);
           y += 42;
@@ -1197,13 +1197,13 @@
       // 남는 공간 장식
       if (y < footY - 90) {
         var hy = footY - 46;
-        heart(ctx, cx - 46, hy, 15, 'rgba(244, 168, 179, 0.55)');
-        heart(ctx, cx, hy - 8, 19, 'rgba(239, 165, 124, 0.6)');
-        heart(ctx, cx + 46, hy, 15, 'rgba(127, 166, 194, 0.45)');
+        heart(ctx, cx - 46, hy, 15, 'rgba(214, 67, 106, 0.35)');
+        heart(ctx, cx, hy - 8, 19, 'rgba(49, 130, 246, 0.45)');
+        heart(ctx, cx + 46, hy, 15, 'rgba(18, 183, 106, 0.30)');
       }
 
       ctx.textAlign = 'center';
-      ctx.fillStyle = '#B3A398';
+      ctx.fillStyle = '#8B95A1';
       ctx.font = '600 21px ' + FONT;
       ctx.fillText('우리 아기 육아일기', cx, H - M - 44);
 
