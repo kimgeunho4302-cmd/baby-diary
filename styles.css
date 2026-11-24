@@ -1098,6 +1098,7 @@ body.modal-open { overflow: hidden; }
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.map-count:empty { display: none; }
 .map-reload {
   flex: none;
   margin-left: auto;

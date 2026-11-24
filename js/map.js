@@ -152,8 +152,8 @@
   function showFallback() {
     if (has(el.fallback)) el.fallback.hidden = false;
     if (has(el.mapBox)) el.mapBox.classList.add('is-off');
-    setCount('지도를 불러오지 못했어요');
-    renderEmpty('지도를 불러오지 못해 주변 목록을 가져오지 못했어요. 아래 ‘카카오맵에서 보기’로 확인해 주세요.', true);
+    setCount('');
+    renderEmpty('지도를 불러오지 못해 주변 병원·약국 목록을 가져오지 못했어요. 위의 ‘카카오맵에서 보기’로 확인해 주세요.', false);
     note('오프라인이거나 카카오 지도 설정(도메인 등록·사용 설정)이 꺼져 있으면 지도가 보이지 않아요.');
   }
 
