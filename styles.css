@@ -1467,6 +1467,14 @@ body.modal-open { overflow: hidden; }
 .story-art .art-side-a { left: 18px; bottom: 18px; }
 .story-art .art-side-b { right: 20px; top: 20px; }
 
+/* 세계 그림책 — 삽화가 있는 쪽은 그림을 크게, 없으면 위의 이모지 그림 */
+.story-art.is-photo { height: auto; display: block; padding: 0; }
+.story-art.is-photo .art-img {
+  display: block; width: 100%; height: auto;
+  max-height: min(46vh, 330px); object-fit: contain;
+}
+.story-art.is-photo.is-new .art-img { animation: storyPop .42s cubic-bezier(.22, .8, .3, 1); }
+
 .story-text { padding: 2px 16px 18px; }
 .story-ko {
   font-size: 15.5px; font-weight: 600; color: var(--text);
@@ -1518,6 +1526,18 @@ body.modal-open { overflow: hidden; }
 .story-dot.is-on { width: 20px; background: var(--blue); }
 .story-count { font-size: 12px; font-weight: 700; color: var(--text-ter); letter-spacing: -0.01em; }
 .story-hint { margin-top: 12px; font-size: 12.5px; color: var(--text-ter); line-height: 1.5; }
+
+/* 세계 그림책 저작자 표시 (StoryWeaver · CC BY 4.0) */
+.story-credit {
+  margin-top: 10px; font-size: 11px; line-height: 1.6;
+  color: var(--text-ter); letter-spacing: -0.005em; word-break: keep-all;
+}
+.story-credit[hidden] { display: none; }
+.story-credit .credit-title { color: var(--text-sub); font-weight: 700; }
+.story-credit a {
+  color: inherit; text-decoration: underline;
+  text-underline-offset: 2px; text-decoration-color: var(--line);
+}
 
 /* 동화 고르기 · 50권 책장 */
 .story-bookbar {
@@ -1697,6 +1717,7 @@ body.sheet-open { overflow: hidden; }
 @media (min-width: 620px) {
   .story-art { height: 176px; }
   .story-art .art-main { font-size: 84px; }
+  .story-art.is-photo .art-img { max-height: min(44vh, 360px); }
   .story-word { padding: 1px 2px; }
 }
 @media (min-width: 620px) {

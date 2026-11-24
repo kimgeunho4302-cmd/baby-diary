@@ -1,5 +1,6 @@
 /* 우리 아기 육아일기 — 동화책
    · Supabase public.stories 에서 동화 목록을 받아 옵니다 (없으면 내장 4편으로 자동 전환)
+   · 세계 그림책(StoryWeaver CC BY 4.0) 3권은 js/story-world.js 에 들어 있어 항상 함께 보입니다
    · 받아 온 목록은 localStorage 에 저장해 인터넷이 없어도 그대로 읽을 수 있습니다
    · 한글/영어 읽어주기 · 영어 단어 터치 뜻·발음 카드 · 단어장 · 퀴즈
 */
@@ -13,8 +14,12 @@
   var FETCH_TTL = 10 * 60 * 1000; /* 10분 안에 받아 온 목록은 다시 부르지 않음 */
 
   var VOCAB = (window.STORY_VOCAB && typeof window.STORY_VOCAB === 'object') ? window.STORY_VOCAB : {};
+  /* 세계 그림책(StoryWeaver)에만 나오는 낱말 — js/world-vocab.js */
+  var WORLD_VOCAB = (window.STORYWEAVER_VOCAB && typeof window.STORYWEAVER_VOCAB === 'object') ? window.STORYWEAVER_VOCAB : {};
+  /* 세계 그림책 3권 — js/story-world.js (Supabase에 같은 id가 있으면 그쪽이 우선) */
+  var WORLD = (window.STORY_WORLD && Array.isArray(window.STORY_WORLD)) ? window.STORY_WORLD : [];
   var CFG = (window.BABY_DIARY_SUPABASE && typeof window.BABY_DIARY_SUPABASE === 'object') ? window.BABY_DIARY_SUPABASE : {};
-  var CAT_ORDER = ['전체', '동물', '생활습관', '잠자리', '자연·계절', '숫자·색깔·탈것'];
+  var CAT_ORDER = ['전체', '동물', '생활습관', '잠자리', '자연·계절', '숫자·색깔·탈것', '세계 그림책'];
 
   /* ---------------- 내장 동화 4편 (Supabase가 비어 있거나 인터넷이 없을 때) ---------------- */
   var BG = {
@@ -95,6 +100,7 @@
   function vocabOf(key) {
     if (!key) return null;
     if (VOCAB[key]) return VOCAB[key];
+    if (WORLD_VOCAB[key]) return WORLD_VOCAB[key];
     if (EXTRA_VOCAB[key]) return EXTRA_VOCAB[key];
     return null;
   }
@@ -163,6 +169,27 @@
     return v;
   }
 
+  /* 삽화 URL 은 https 만, 너무 길거나 수상한 값은 버립니다 */
+  function safeImg(url) {
+    if (typeof url !== 'string') return '';
+    var v = url.trim();
+    if (!v || v.length > 400) return '';
+    if (!/^https:\/\/[^\s"'<>]+$/.test(v)) return '';
+    return v;
+  }
+
+  function normAttribution(a) {
+    if (!a || typeof a !== 'object') return null;
+    var out = {}, any = false;
+    ['title', 'author', 'illustrator', 'translator', 'publisher', 'license', 'license_url',
+     'illustration', 'source', 'modified'].forEach(function (k) {
+      if (typeof a[k] === 'string' && a[k]) { out[k] = a[k]; any = true; }
+    });
+    if (typeof a.year === 'number' && isFinite(a.year)) { out.year = a.year; any = true; }
+    if (typeof a.source_page === 'number' && isFinite(a.source_page)) { out.source_page = a.source_page; any = true; }
+    return any ? out : null;
+  }
+
   function normScene(s) {
     if (!s || typeof s !== 'object') return null;
     var ko = typeof s.ko === 'string' ? s.ko : '';
@@ -171,7 +198,10 @@
     var art = [];
     if (Array.isArray(s.art)) art = s.art.slice(0, 3).map(function (x) { return String(x || ''); });
     else if (typeof s.art === 'string') art = s.art.split('|').slice(0, 3);
-    return { ko: ko, en: en, art: art, bg: safeBg(s.bg) };
+    return {
+      ko: ko, en: en, art: art, bg: safeBg(s.bg),
+      img: safeImg(s.img), cover: safeImg(s.cover), attribution: normAttribution(s.attribution)
+    };
   }
 
   /* Supabase row -> 앱 내부 모양 */
@@ -190,6 +220,7 @@
       titleKo: typeof r.title_ko === 'string' && r.title_ko ? r.title_ko : r.id,
       titleEn: typeof r.title_en === 'string' ? r.title_en : '',
       emoji: typeof r.cover_emoji === 'string' && r.cover_emoji ? r.cover_emoji : '📖',
+      cover: scenes[0].cover || '',
       scenes: scenes
     };
   }
@@ -409,7 +440,7 @@
     if (count) count.textContent = state.list.length + '권';
   }
 
-  function renderArt(art) {
+  function renderEmojiArt(art) {
     var box = $('#storyArt');
     if (!box) return;
     box.textContent = '';
@@ -424,9 +455,84 @@
       s.textContent = art[i + 1];
       box.appendChild(s);
     });
+  }
+
+  function popArt(box) {
     box.classList.remove('is-new');
     void box.offsetWidth;
     box.classList.add('is-new');
+  }
+
+  /* 그림이 있는 책(세계 그림책)은 삽화를, 없으면 이모지 그림을 보여 줍니다. */
+  function renderArt(scene) {
+    var box = $('#storyArt');
+    if (!box) return;
+    var art = (scene && scene.art) || [];
+    var src = safeImg(scene && scene.img);
+    if (!src) {
+      box.classList.remove('is-photo');
+      renderEmojiArt(art);
+      popArt(box);
+      return;
+    }
+    box.textContent = '';
+    box.classList.add('is-photo');
+    var img = document.createElement('img');
+    img.className = 'art-img';
+    img.alt = '';
+    img.decoding = 'async';
+    img.referrerPolicy = 'no-referrer';
+    img.addEventListener('error', function () {
+      /* 인터넷이 없거나 이미지가 사라졌을 때 — 이모지 그림으로 돌아갑니다
+         (이미 다음 장면으로 넘어갔으면 건드리지 않습니다) */
+      if (img.parentNode !== box) return;
+      box.classList.remove('is-photo');
+      renderEmojiArt(art);
+      popArt(box);
+    });
+    img.src = src;
+    box.appendChild(img);
+    popArt(box);
+  }
+
+  /* 세계 그림책 저작자 표시 (CC BY 4.0) */
+  function renderCredit(scene) {
+    var box = $('#storyCredit');
+    if (!box) return;
+    var a = scene && scene.attribution;
+    if (!a || !a.title) {
+      box.hidden = true;
+      box.textContent = '';
+      return;
+    }
+    box.hidden = false;
+    box.textContent = '';
+    var b = document.createElement('strong');
+    b.className = 'credit-title';
+    b.textContent = a.title;
+    box.appendChild(b);
+    var names = ' · 글 ' + (a.author || '');
+    if (a.translator) names += ' · 옮김 ' + a.translator;
+    if (a.illustrator) names += ' · 그림 ' + a.illustrator;
+    if (a.publisher) names += ' · ' + a.publisher + (a.year ? ' ' + a.year : '');
+    box.appendChild(document.createTextNode(names));
+    if (a.modified) box.appendChild(document.createTextNode(' · 한국어 번역 수록'));
+    box.appendChild(document.createTextNode(' · '));
+    if (a.source) {
+      var s = document.createElement('a');
+      s.href = a.source;
+      s.target = '_blank';
+      s.rel = 'noopener noreferrer';
+      s.textContent = 'StoryWeaver 원문';
+      box.appendChild(s);
+      box.appendChild(document.createTextNode(' · '));
+    }
+    var l = document.createElement('a');
+    l.href = a.license_url || 'https://creativecommons.org/licenses/by/4.0/';
+    l.target = '_blank';
+    l.rel = 'noopener noreferrer';
+    l.textContent = a.license || 'CC BY 4.0';
+    box.appendChild(l);
   }
 
   function renderEnglish(sentence) {
@@ -461,7 +567,7 @@
     if (!s || !p) return;
     if (state.page >= s.scenes.length) state.page = 0;
     renderBookBar();
-    renderArt(p.art);
+    renderArt(p);
     var stage = $('.story-stage');
     if (stage) stage.style.backgroundImage = p.bg || '';
     var ko = $('#storyKo');
@@ -496,6 +602,7 @@
     var next = $('#storyNext');
     if (prev) prev.disabled = state.page === 0;
     if (next) next.disabled = state.page === s.scenes.length - 1;
+    renderCredit(p);
   }
 
   function renderAll() {
@@ -549,9 +656,22 @@
     return !!(CFG.url && CFG.anonKey && /^https?:\/\//.test(CFG.url));
   }
 
+  function withWorld(list) {
+    if (!WORLD.length) return list;
+    var have = {};
+    list.forEach(function (s) { have[s.id] = true; });
+    var extra = [];
+    WORLD.forEach(function (row) {
+      if (!row || have[row.id]) return;
+      var x = normRow(row);
+      if (x) extra.push(x);
+    });
+    return extra.length ? list.concat(extra) : list;
+  }
+
   function adopt(list, source) {
     var keep = curStory() ? curStory().id : '';
-    state.list = list.slice().sort(function (a, b) { return (a.sort - b.sort) || a.titleKo.localeCompare(b.titleKo); });
+    state.list = withWorld(list.slice()).sort(function (a, b) { return (a.sort - b.sort) || a.titleKo.localeCompare(b.titleKo); });
     state.source = source;
     var idx = 0;
     if (keep) {
@@ -586,7 +706,7 @@
 
   function refresh(force) {
     if (!cfgOK()) {
-      setStatus('warn', '동화 목록을 불러올 주소가 아직 설정되지 않아 기본 동화 4권을 보여 줘요.', false);
+      setStatus('warn', '동화 목록을 불러올 주소가 아직 설정되지 않아 기본 동화를 보여 줘요.', false);
       return;
     }
     if (state.loading) return;
@@ -634,7 +754,7 @@
           if (state.source === 'cache') {
             setStatus('note', '동화 목록이 아직 비어 있어 저장해 둔 ' + state.list.length + '권을 보여 줘요.', true);
           } else {
-            setStatus('warn', '동화 목록이 아직 비어 있어 기본 동화 4권을 보여 줘요. Supabase에 동화 50편을 올리면 바로 나타나요.', true);
+            setStatus('warn', '동화 목록이 아직 비어 있어 기본 동화를 보여 줘요. Supabase에 동화 50편을 올리면 바로 나타나요.', true);
           }
           renderStatus();
           return;
@@ -660,7 +780,7 @@
         if (state.source === 'cache') {
           setStatus('note', why + ' 저장해 둔 ' + state.list.length + '권을 보여 줘요.', true);
         } else {
-          setStatus('warn', why + ' 기본 동화 4권을 보여 줘요.', true);
+          setStatus('warn', why + ' 기본 동화를 보여 줘요.', true);
         }
         renderShelfGrid();
       });
@@ -883,8 +1003,8 @@
     var others = [];
     var seen = {};
     seen[right] = 1;
-    shuffle(Object.keys(VOCAB)).forEach(function (k) {
-      var e = VOCAB[k];
+    shuffle(Object.keys(VOCAB).concat(Object.keys(WORLD_VOCAB))).forEach(function (k) {
+      var e = VOCAB[k] || WORLD_VOCAB[k];
       if (!e || !e.ko || seen[e.ko]) return;
       seen[e.ko] = 1;
       others.push(e.ko);
