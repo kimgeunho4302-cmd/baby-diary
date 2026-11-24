@@ -653,7 +653,7 @@
         if (typeof navigator !== 'undefined' && navigator.onLine === false) {
           why = '인터넷에 연결되어 있지 않아요.';
         } else if (status === 404 || /PGRST20[0-9]/.test(code) || /does not exist/i.test(code)) {
-          why = 'Supabase에 동화 목록 표(stories)가 아직 없어요.';
+          why = '동화 50권 시드(SQL)를 아직 Supabase에 넣지 않았어요.';
         } else {
           why = '동화 목록을 불러오지 못했어요.';
         }
