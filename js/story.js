@@ -1,6 +1,6 @@
 /* 우리 아기 육아일기 — 동화책
    · Supabase public.stories 에서 동화 목록을 받아 옵니다 (없으면 내장 4편으로 자동 전환)
-   · 세계 그림책(StoryWeaver CC BY 4.0) 3권은 js/story-world.js 에 들어 있어 항상 함께 보입니다
+   · 세계 그림책(StoryWeaver CC BY 4.0) 3권은 js/story-world.js, 명작 동화(Project Gutenberg 퍼블릭 도메인) 7편은 js/story-classics.js 에 들어 있어 항상 함께 보입니다
    · 받아 온 목록은 localStorage 에 저장해 인터넷이 없어도 그대로 읽을 수 있습니다
    · 한글/영어 읽어주기 · 영어 단어 터치 뜻·발음 카드 · 단어장 · 퀴즈
 */
@@ -10,7 +10,7 @@
   var VOCAB_KEY = 'babyDiary.vocab.v1';
   var CACHE_KEY = 'babyDiary.storiesCache.v1';
   var LAST_KEY = 'babyDiary.storyLast.v1';
-  var CACHE_LIMIT = 60;          /* 저장해 둘 동화 수 (50권 + 여유) */
+  var CACHE_LIMIT = 70;          /* 저장해 둘 동화 수 (60권 + 여유) */
   var FETCH_TTL = 10 * 60 * 1000; /* 10분 안에 받아 온 목록은 다시 부르지 않음 */
 
   var VOCAB = (window.STORY_VOCAB && typeof window.STORY_VOCAB === 'object') ? window.STORY_VOCAB : {};
@@ -18,8 +18,14 @@
   var WORLD_VOCAB = (window.STORYWEAVER_VOCAB && typeof window.STORYWEAVER_VOCAB === 'object') ? window.STORYWEAVER_VOCAB : {};
   /* 세계 그림책 3권 — js/story-world.js (Supabase에 같은 id가 있으면 그쪽이 우선) */
   var WORLD = (window.STORY_WORLD && Array.isArray(window.STORY_WORLD)) ? window.STORY_WORLD : [];
+  /* 명작 동화에만 나오는 낱말 — js/classics-vocab.js */
+  var CLASSICS_VOCAB = (window.CLASSICS_VOCAB && typeof window.CLASSICS_VOCAB === 'object') ? window.CLASSICS_VOCAB : {};
+  /* 명작 동화 7편 — js/story-classics.js (Supabase에 같은 id가 있으면 그쪽이 우선) */
+  var CLASSICS = (window.STORY_CLASSICS && Array.isArray(window.STORY_CLASSICS)) ? window.STORY_CLASSICS : [];
   var CFG = (window.BABY_DIARY_SUPABASE && typeof window.BABY_DIARY_SUPABASE === 'object') ? window.BABY_DIARY_SUPABASE : {};
-  var CAT_ORDER = ['전체', '동물', '생활습관', '잠자리', '자연·계절', '숫자·색깔·탈것', '세계 그림책'];
+  var CAT_ORDER = ['전체', '동물', '생활습관', '잠자리', '자연·계절', '숫자·색깔·탈것', '세계 그림책', '명작 동화'];
+  /* 내장으로 함께 보여 주는 책(세계 그림책 + 명작 동화) */
+  var EMBEDDED = WORLD.concat(CLASSICS);
 
   /* ---------------- 내장 동화 4편 (Supabase가 비어 있거나 인터넷이 없을 때) ---------------- */
   var BG = {
@@ -101,6 +107,7 @@
     if (!key) return null;
     if (VOCAB[key]) return VOCAB[key];
     if (WORLD_VOCAB[key]) return WORLD_VOCAB[key];
+    if (CLASSICS_VOCAB[key]) return CLASSICS_VOCAB[key];
     if (EXTRA_VOCAB[key]) return EXTRA_VOCAB[key];
     return null;
   }
@@ -523,7 +530,8 @@
       s.href = a.source;
       s.target = '_blank';
       s.rel = 'noopener noreferrer';
-      s.textContent = 'StoryWeaver 원문';
+      /* 세계 그림책은 StoryWeaver, 명작 동화는 Project Gutenberg 원문 링크입니다 */
+      s.textContent = /storyweaver/i.test(a.source) ? 'StoryWeaver 원문' : '원문 보기';
       box.appendChild(s);
       box.appendChild(document.createTextNode(' · '));
     }
@@ -656,12 +664,13 @@
     return !!(CFG.url && CFG.anonKey && /^https?:\/\//.test(CFG.url));
   }
 
-  function withWorld(list) {
-    if (!WORLD.length) return list;
+  /* 내장 책(세계 그림책·명작 동화)을 Supabase 목록 뒤에 붙입니다. 같은 id 는 Supabase 쪽만 남깁니다. */
+  function withEmbedded(list) {
+    if (!EMBEDDED.length) return list;
     var have = {};
     list.forEach(function (s) { have[s.id] = true; });
     var extra = [];
-    WORLD.forEach(function (row) {
+    EMBEDDED.forEach(function (row) {
       if (!row || have[row.id]) return;
       var x = normRow(row);
       if (x) extra.push(x);
@@ -671,7 +680,7 @@
 
   function adopt(list, source) {
     var keep = curStory() ? curStory().id : '';
-    state.list = withWorld(list.slice()).sort(function (a, b) { return (a.sort - b.sort) || a.titleKo.localeCompare(b.titleKo); });
+    state.list = withEmbedded(list.slice()).sort(function (a, b) { return (a.sort - b.sort) || a.titleKo.localeCompare(b.titleKo); });
     state.source = source;
     var idx = 0;
     if (keep) {
@@ -754,7 +763,7 @@
           if (state.source === 'cache') {
             setStatus('note', '동화 목록이 아직 비어 있어 저장해 둔 ' + state.list.length + '권을 보여 줘요.', true);
           } else {
-            setStatus('warn', '동화 목록이 아직 비어 있어 기본 동화를 보여 줘요. Supabase에 동화 50편을 올리면 바로 나타나요.', true);
+            setStatus('warn', '동화 목록이 아직 비어 있어 기본 동화를 보여 줘요. Supabase에 동화 60권을 올리면 바로 나타나요.', true);
           }
           renderStatus();
           return;
@@ -773,7 +782,7 @@
         if (typeof navigator !== 'undefined' && navigator.onLine === false) {
           why = '인터넷에 연결되어 있지 않아요.';
         } else if (status === 404 || /PGRST20[0-9]/.test(code) || /does not exist/i.test(code)) {
-          why = '동화 50권 시드(SQL)를 아직 Supabase에 넣지 않았어요.';
+          why = '동화 60권 시드(SQL)를 아직 Supabase에 넣지 않았어요.';
         } else {
           why = '동화 목록을 불러오지 못했어요.';
         }
@@ -1003,8 +1012,8 @@
     var others = [];
     var seen = {};
     seen[right] = 1;
-    shuffle(Object.keys(VOCAB).concat(Object.keys(WORLD_VOCAB))).forEach(function (k) {
-      var e = VOCAB[k] || WORLD_VOCAB[k];
+    shuffle(Object.keys(VOCAB).concat(Object.keys(WORLD_VOCAB), Object.keys(CLASSICS_VOCAB))).forEach(function (k) {
+      var e = vocabOf(k);
       if (!e || !e.ko || seen[e.ko]) return;
       seen[e.ko] = 1;
       others.push(e.ko);
