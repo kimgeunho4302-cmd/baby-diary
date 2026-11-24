@@ -150,6 +150,94 @@
     you: '너, 당신|대명사'
   };
 
+  /* ---------------- 내장 발음 기호 (미국식 IPA) ---------------- */
+  var PHON = {
+    a: '/ə/',
+    and: '/ənd/',
+    apple: '/ˈæpəl/',
+    baby: '/ˈbeɪbi/',
+    ball: '/bɔl/',
+    bear: '/bɛr/',
+    breakfast: '/ˈbrɛkfəst/',
+    branch: '/brænʧ/',
+    bunny: '/ˈbʌni/',
+    by: '/baɪ/',
+    carrot: '/ˈkɛrət/',
+    chases: '/ˈʧeɪsɪz/',
+    comes: '/kəmz/',
+    down: '/daʊn/',
+    dries: '/draɪz/',
+    eats: '/its/',
+    falls: '/fɔlz/',
+    finds: '/faɪndz/',
+    flower: '/flaʊər/',
+    for: '/fɔr/',
+    forest: '/ˈfɔrɪst/',
+    friend: '/frɛnd/',
+    goes: '/goʊz/',
+    good: '/gʊd/',
+    goodnight: '/ˈgʊdˌnaɪt/',
+    grass: '/græs/',
+    hello: '/hɛˈloʊ/',
+    high: '/haɪ/',
+    his: '/hɪz/',
+    home: '/hoʊm/',
+    hops: '/hɑps/',
+    in: '/ɪn/',
+    into: '/ˈɪntu/',
+    is: '/ɪz/',
+    it: '/ɪt/',
+    light: '/laɪt/',
+    little: '/ˈlɪtəl/',
+    mom: '/mɑm/',
+    mongi: '/ˈmɔŋi/',
+    moon: '/mun/',
+    morning: '/ˈmɔrnɪŋ/',
+    night: '/naɪt/',
+    one: '/wʌn/',
+    opens: '/ˈoʊpənz/',
+    park: '/pɑrk/',
+    rain: '/reɪn/',
+    reach: '/riʧ/',
+    red: '/rɛd/',
+    rises: '/ˈraɪzɪz/',
+    room: '/rum/',
+    says: '/sɛz/',
+    see: '/si/',
+    sees: '/siz/',
+    shakes: '/ʃeɪks/',
+    shares: '/ʃɛrz/',
+    shines: '/ʃaɪnz/',
+    silver: '/ˈsɪlvər/',
+    sky: '/skaɪ/',
+    sleep: '/slip/',
+    so: '/soʊ/',
+    squirrel: '/skwərəl/',
+    stars: '/stɑrz/',
+    starts: '/stɑrts/',
+    stretches: '/ˈstrɛʧɪz/',
+    sun: '/sʌn/',
+    sweeter: '/ˈswitər/',
+    tail: '/teɪl/',
+    tastes: '/teɪsts/',
+    the: '/ðə/',
+    to: '/tu/',
+    together: '/təˈgɛðər/',
+    tomorrow: '/təˈmɑˌroʊ/',
+    too: '/tu/',
+    towel: '/taʊəl/',
+    twinkle: '/ˈtwɪŋkəl/',
+    up: '/ʌp/',
+    wags: '/wægz/',
+    walk: '/wɔk/',
+    warm: '/wɔrm/',
+    well: '/wɛl/',
+    window: '/ˈwɪndoʊ/',
+    with: '/wɪθ/',
+    yellow: '/ˈjɛloʊ/',
+    you: '/ju/'
+  };
+
   var state = { story: 0, page: 0, lang: 'both', word: null };
   var phonCache = {};   /* word -> { phon, audio } */
   var lookupToken = 0;
@@ -175,6 +263,7 @@
     var i = raw.indexOf('|');
     return i < 0 ? { ko: raw, pos: '' } : { ko: raw.slice(0, i), pos: raw.slice(i + 1) };
   }
+  function phonOf(word) { return PHON[word] || ''; }
 
   /* ---------------- 단어장 저장 ---------------- */
   function loadVocab() {
@@ -377,10 +466,20 @@
     sheet.hidden = false;
     document.body.classList.add('sheet-open');
 
+    /* 발음 기호는 내장 사전에서 바로 — 인터넷이 없어도 보입니다. */
     var cached = phonCache[word];
-    if (cached) { applyPhon(cached); return; }
+    if (cached && cached.phon) { applyPhon(cached); return; }
+    var bundled = phonOf(word);
+    if (bundled) { applyPhon({ phon: bundled }); return; }
     if (typeof fetch !== 'function') { showPhonNote('인터넷이 없어도 저장된 뜻으로 볼 수 있어요.'); return; }
+    lookupWord(word, false);
+  }
 
+  /* 사전 API는 '원어민 음성'이 필요할 때만 부릅니다(없으면 기기 음성으로 대체). */
+  function lookupWord(word, forAudio) {
+    if (typeof fetch !== 'function') return;
+    var rec = phonCache[word];
+    if (rec && rec.tried) return;
     var token = ++lookupToken;
     var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
     var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, 5000);
@@ -388,7 +487,6 @@
       .then(function (r) { if (!r.ok) throw new Error('not found'); return r.json(); })
       .then(function (data) {
         clearTimeout(timer);
-        if (token !== lookupToken) return;
         var e = data && data[0];
         if (!e) throw new Error('empty');
         var phon = e.phonetic || '';
@@ -398,15 +496,34 @@
           if (!audio && x.audio) audio = x.audio;
         });
         if (!phon && !audio) throw new Error('empty');
-        var rec = { phon: phon || '', audio: audio || '' };
-        phonCache[word] = rec;
-        applyPhon(rec);
+        phonCache[word] = { phon: phon || '', audio: audio || '', tried: true };
+        if (token === lookupToken && state.word === word && phon) applyPhon(phonCache[word]);
+        if (forAudio && audio) playAudio(audio, word);
       })
       .catch(function () {
         clearTimeout(timer);
-        if (token !== lookupToken) return;
-        showPhonNote('사전 발음 정보를 불러오지 못했어요. 🔊 발음 듣기로 기기 음성을 들을 수 있어요.');
+        phonCache[word] = { phon: '', audio: '', tried: true };
+        if (!forAudio && token === lookupToken && state.word === word && !phonOf(word) && !$('#wordSheetPhon').textContent) {
+          showPhonNote('발음 기호를 받아 오지 못했어요. 🔊 발음 듣기로 기기 음성을 들을 수 있어요.');
+        }
       });
+  }
+
+  function playAudio(url, word) {
+    try {
+      var a = new Audio(url);
+      var pr = a.play();
+      if (pr && pr.catch) pr.catch(function () { speakText(word, 'en-US', 0.85); });
+    } catch (e) { speakText(word, 'en-US', 0.85); }
+  }
+
+  function pronounceWord(word) {
+    if (!word) return;
+    var rec = phonCache[word];
+    if (rec && rec.audio) { playAudio(rec.audio, word); return; }
+    stopSpeak();
+    speakText(word, 'en-US', 0.85);
+    lookupWord(word, true);
   }
 
   function applyPhon(rec) {
@@ -457,19 +574,7 @@
     renderVocab();
   }
   function playWord() {
-    var word = state.word;
-    if (!word) return;
-    var rec = phonCache[word];
-    if (rec && rec.audio) {
-      try {
-        var a = new Audio(rec.audio);
-        var pr = a.play();
-        if (pr && pr.catch) pr.catch(function () { speakText(word, 'en-US', 0.85); });
-        return;
-      } catch (e) {}
-    }
-    stopSpeak();
-    speakText(word, 'en-US', 0.85);
+    pronounceWord(state.word);
   }
 
   /* ---------------- 단어장 · 퀴즈 ---------------- */
@@ -500,12 +605,7 @@
         sp.className = 'vocab-btn';
         sp.setAttribute('aria-label', it.w + ' 발음 듣기');
         sp.textContent = '🔊';
-        sp.addEventListener('click', function () {
-          stopSpeak();
-          var rec = phonCache[it.w];
-          if (rec && rec.audio) { try { new Audio(rec.audio).play().catch(function () { speakText(it.w, 'en-US', 0.85); }); return; } catch (e) {} }
-          speakText(it.w, 'en-US', 0.85);
-        });
+        sp.addEventListener('click', function () { pronounceWord(it.w); });
         var del = document.createElement('button');
         del.type = 'button';
         del.className = 'vocab-btn';
