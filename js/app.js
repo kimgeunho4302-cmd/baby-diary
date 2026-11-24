@@ -315,6 +315,7 @@
     if (n === '5') buildInfo();
     if (n === '4') { renderDay(); }
     if (n === '6' && window.BabyMap) window.BabyMap.enter();
+    if (n === '7' && window.BabyStory) window.BabyStory.enter();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 

@@ -1,16 +1,17 @@
 /* 우리 아기 육아일기 — 오프라인 캐시 서비스워커 */
-const CACHE = 'baby-diary-toss-v4';
+const CACHE = 'baby-diary-toss-v5';
 const ASSETS = [
   './',
   './index.html',
-  './styles.css?v=3',
-  './manifest.json?v=3',
-  './js/lunar.js?v=3',
-  './js/data.js?v=3',
-  './js/flowers.js?v=3',
-  './js/app.js?v=3',
-  './js/theme.js?v=3',
-  './js/map.js?v=3',
+  './styles.css?v=4',
+  './manifest.json?v=4',
+  './js/lunar.js?v=4',
+  './js/data.js?v=4',
+  './js/flowers.js?v=4',
+  './js/app.js?v=4',
+  './js/theme.js?v=4',
+  './js/map.js?v=4',
+  './js/story.js?v=4',
   './icons/icon-192.png',
   './icons/apple-touch-icon.png',
   './icons/icon-512.png',
@@ -35,7 +36,7 @@ self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
-  /* 카카오 지도(dapi.kakao.com)·타일(daumcdn.net)·CDN 요청은 서비스워커가 가로채지 않습니다 */
+  /* 카카오 지도(dapi.kakao.com)·타일(daumcdn.net)·CDN·영어 사전 요청은 서비스워커가 가로채지 않습니다 */
   if (url.origin !== self.location.origin) return;
 
   if (req.mode === 'navigate') {

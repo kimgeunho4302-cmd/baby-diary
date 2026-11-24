@@ -9,13 +9,13 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="육아일기">
-<link rel="manifest" href="manifest.json?v=3">
+<link rel="manifest" href="manifest.json?v=4">
 <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-<link rel="stylesheet" href="styles.css?v=3">
+<link rel="stylesheet" href="styles.css?v=4">
 <link rel="preconnect" href="https://dapi.kakao.com" crossorigin>
-<script src="js/theme.js?v=3"></script>
+<script src="js/theme.js?v=4"></script>
 </head>
 <body>
 <div class="app" id="app">
@@ -41,6 +41,7 @@
       <button type="button" class="tab" data-tab="4">일기</button>
       <button type="button" class="tab" data-tab="5">아기 정보</button>
       <button type="button" class="tab" data-tab="6">병원·약국</button>
+      <button type="button" class="tab" data-tab="7">동화책</button>
     </nav>
   </header>
 
@@ -465,15 +466,92 @@
       <p class="map-note">지도 위치는 카카오맵 자료이며, 진료시간·야간 진료 여부는 전화로 확인해 주세요. 응급 상황이면 먼저 <strong>119</strong>에 연락하세요.</p>
     </section>
 
+    <!-- 7p 동화책 -->
+    <section class="page" id="page-7" data-page="7" aria-label="동화책">
+      <div class="page-head">
+        <h2 class="page-title">동화책</h2>
+        <p class="page-desc">한글과 영어로 같이 읽어 주는 우리 아기 그림책. 영어 단어를 콕 누르면 뜻이 보여요.</p>
+      </div>
+
+      <article class="card story-card">
+        <div class="story-picker" id="storyPicker" role="group" aria-label="동화 고르기"></div>
+
+        <div class="story-lang" id="storyLang" role="group" aria-label="보여 줄 언어">
+          <button type="button" class="is-on" data-lang="both" aria-pressed="true">한영 함께</button>
+          <button type="button" data-lang="ko" aria-pressed="false">한국어만</button>
+          <button type="button" data-lang="en" aria-pressed="false">영어만</button>
+        </div>
+
+        <div class="story-stage">
+          <div class="story-art" id="storyArt" aria-hidden="true"></div>
+          <div class="story-text">
+            <p class="story-ko" id="storyKo"></p>
+            <p class="story-en" id="storyEn"></p>
+          </div>
+        </div>
+
+        <div class="story-actions">
+          <button type="button" class="sbtn" id="storySpeakEn" aria-pressed="false">🔊 영어 듣기</button>
+          <button type="button" class="sbtn" id="storySpeakKo" aria-pressed="false">🔊 한글 듣기</button>
+          <button type="button" class="sbtn" id="storySlow" aria-pressed="false">🐢 천천히</button>
+          <button type="button" class="sbtn" id="storyPrev">← 이전</button>
+          <button type="button" class="sbtn" id="storyStop">⏹ 멈춤</button>
+          <button type="button" class="sbtn" id="storyNext">다음 →</button>
+        </div>
+
+        <div class="story-foot">
+          <div class="story-dots" id="storyDots"></div>
+          <p class="story-count" id="storyCount">1 / 5</p>
+        </div>
+
+        <p class="story-hint">영어 문장의 단어를 누르면 뜻·발음 카드가 열려요.</p>
+      </article>
+
+      <article class="card vocab-card">
+        <div class="card-head">
+          <h2 class="card-title">내 단어장</h2>
+          <span class="vocab-count" id="vocabCount">0개</span>
+        </div>
+        <p class="card-desc" id="vocabEmpty">아직 담은 단어가 없어요. 영어 단어를 눌러 <strong>⭐ 단어장 저장</strong>을 해 보세요.</p>
+        <div class="vocab-list" id="vocabList"></div>
+        <div class="quiz" id="quizBox" hidden>
+          <p class="quiz-q" id="quizQ"></p>
+          <div class="quiz-opts" id="quizOpts"></div>
+          <p class="quiz-note" id="quizNote" hidden></p>
+          <button type="button" class="sbtn quiz-new" id="quizNew" hidden>새 문제 내기</button>
+        </div>
+      </article>
+
+      <div class="word-sheet" id="wordSheet" hidden>
+        <div class="word-sheet-dim" id="wordSheetDim"></div>
+        <div class="word-sheet-card" role="dialog" aria-modal="true" aria-labelledby="wordSheetWord">
+          <div class="word-sheet-grip" aria-hidden="true"></div>
+          <div class="word-sheet-head">
+            <p class="word-sheet-word" id="wordSheetWord">word</p>
+            <button type="button" class="word-sheet-close" id="wordSheetClose">닫기</button>
+          </div>
+          <p class="word-sheet-phon" id="wordSheetPhon" hidden></p>
+          <p class="word-sheet-ko" id="wordSheetKo"></p>
+          <p class="word-sheet-pos" id="wordSheetPos" hidden></p>
+          <div class="word-sheet-actions">
+            <button type="button" class="sbtn" id="wordSpeak">🔊 발음 듣기</button>
+            <button type="button" class="sbtn sbtn-solid" id="wordSave">⭐ 단어장 저장</button>
+          </div>
+          <p class="word-sheet-note" id="wordSheetNote" hidden></p>
+        </div>
+      </div>
+    </section>
+
   </main>
 
   <nav class="bottomnav" id="bottomnav" aria-label="페이지 이동">
     <button type="button" class="bottom-item" data-tab="1"><span aria-hidden="true">👨‍👩‍👧</span><em>가족</em></button>
     <button type="button" class="bottom-item" data-tab="2"><span aria-hidden="true">💞</span><em>첫 만남</em></button>
     <button type="button" class="bottom-item" data-tab="3"><span aria-hidden="true">🌷</span><em>탄생</em></button>
-    <button type="button" class="bottom-item active" data-tab="4"><span aria-hidden="true">📖</span><em>일기</em></button>
-    <button type="button" class="bottom-item" data-tab="5"><span aria-hidden="true">⭐</span><em>아기 정보</em></button>
-    <button type="button" class="bottom-item" data-tab="6"><span aria-hidden="true">🏥</span><em>병원·약국</em></button>
+    <button type="button" class="bottom-item active" data-tab="4"><span aria-hidden="true">📝</span><em>일기</em></button>
+    <button type="button" class="bottom-item" data-tab="5" aria-label="아기 정보"><span aria-hidden="true">⭐</span><em><span class="lbl-long">아기 정보</span><span class="lbl-short">아기정보</span></em></button>
+    <button type="button" class="bottom-item" data-tab="6" aria-label="병원·약국"><span aria-hidden="true">🏥</span><em><span class="lbl-long">병원·약국</span><span class="lbl-short">병원</span></em></button>
+    <button type="button" class="bottom-item" data-tab="7"><span aria-hidden="true">📖</span><em>동화책</em></button>
   </nav>
 
   <div class="player" id="player">
@@ -506,10 +584,11 @@
   </div>
 </div>
 
-<script src="js/lunar.js?v=3"></script>
-<script src="js/data.js?v=3"></script>
-<script src="js/flowers.js?v=3"></script>
-<script src="js/app.js?v=3"></script>
-<script src="js/map.js?v=3"></script>
+<script src="js/lunar.js?v=4"></script>
+<script src="js/data.js?v=4"></script>
+<script src="js/flowers.js?v=4"></script>
+<script src="js/app.js?v=4"></script>
+<script src="js/map.js?v=4"></script>
+<script src="js/story.js?v=4"></script>
 </body>
 </html>
